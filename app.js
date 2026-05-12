@@ -2,6 +2,7 @@
 import { CLIENTS, STAGES, CUSTOMER_TYPES, MORNING_DIGEST, clientById, stageById } from './data/clients.js';
 import { TASKS, MEETINGS, PREP_PROTOCOL, MONDAY_RUNDOWN, STATUSES, PRIORITIES, tasksForClient, taskById, meetingById } from './data/work.js';
 import { TICKETS, KB_ARTICLES, SAVED_VIEWS, PERSONAS, PERFORMANCE, ticketsForClient, ticketById } from './data/support.js';
+import { BOTS, getHistory, appendMessage, resetHistory, matchIntent, suggestedReplies } from './chat.js';
 
 /* ── Password gate (copied pattern from heritage-proposals) ── */
 
@@ -1607,6 +1608,8 @@ function render() {
   main.innerHTML = dispatchRoute();
   // Track ticket selection bulk bar
   bindSelections();
+  // Refresh chat shell so FAB/panel reflect current app + context-aware suggestions
+  renderChatShell();
   window.scrollTo(0, 0);
 }
 
@@ -1827,6 +1830,146 @@ function closeDialog() {
   root.setAttribute('aria-hidden', 'true');
 }
 
+/* ── Chat widget ─────────────────────────────────────────── */
+
+function renderChatShell() {
+  const bot = BOTS[state.app];
+  const fabIcon = document.getElementById('chat-fab-icon');
+  fabIcon.textContent = bot.initial;
+  fabIcon.className = 'chat-fab-icon ' + bot.accentClass;
+  const headIcon = document.getElementById('chat-head-icon');
+  headIcon.textContent = bot.initial;
+  headIcon.className = 'app-icon ' + bot.accentClass;
+  document.getElementById('chat-head-name').textContent = bot.name;
+  document.getElementById('chat-head-sub').textContent = bot.sub;
+  document.getElementById('chat-input').placeholder = `Ask ${bot.name}…`;
+  document.getElementById('chat-panel').dataset.app = state.app;
+  // Refresh body + quick replies for the new app
+  renderChatBody();
+  renderQuickReplies();
+}
+
+function chatContext() {
+  return { followingClient: state.query.client || null };
+}
+
+function chatBubbleHtml(text) {
+  // very light markdown for **bold**
+  return esc(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+
+function renderChatBody() {
+  const body = document.getElementById('chat-body');
+  if (!body) return;
+  const bot = BOTS[state.app];
+  const history = getHistory(state.app);
+  const messages = history.length === 0
+    ? [{ role: 'bot', text: bot.welcome }]
+    : history;
+  body.innerHTML = messages.map((m) => renderMessage(m)).join('');
+  body.scrollTop = body.scrollHeight;
+}
+
+function renderMessage(m) {
+  if (m.role === 'user') {
+    return `
+      <div class="chat-msg chat-msg--user">
+        <div class="chat-bubble">${chatBubbleHtml(m.text)}</div>
+      </div>
+    `;
+  }
+  if (m.role === 'typing') {
+    return `
+      <div class="chat-msg chat-msg--bot">
+        <div class="chat-bubble chat-typing" aria-label="Assistant is typing">
+          <span class="chat-typing-dot"></span><span class="chat-typing-dot"></span><span class="chat-typing-dot"></span>
+        </div>
+      </div>
+    `;
+  }
+  const citations = (m.citations || []).map((c) => {
+    if (c.action) {
+      return `<button class="chat-citation" type="button" data-action="chat-cite-action" data-cite-type="${esc(c.action.type)}" data-cite-id="${esc(c.action.clientId || c.action.id || '')}">${esc(c.label)}</button>`;
+    }
+    return `<a class="chat-citation" href="${esc(c.href)}" data-action="chat-cite">${esc(c.label)}</a>`;
+  }).join('');
+  return `
+    <div class="chat-msg chat-msg--bot">
+      <div class="chat-bubble">${chatBubbleHtml(m.text)}</div>
+      ${citations ? `<div class="chat-citations">${citations}</div>` : ''}
+    </div>
+  `;
+}
+
+function renderQuickReplies() {
+  const q = document.getElementById('chat-quick');
+  if (!q) return;
+  const replies = suggestedReplies(state.app, chatContext());
+  q.innerHTML = replies.map((r) => `<button class="chat-quick-chip" type="button" data-action="chat-quick" data-text="${esc(r)}">${esc(r)}</button>`).join('');
+}
+
+function openChat() {
+  document.getElementById('chat-panel').hidden = false;
+  document.getElementById('chat-fab').dataset.active = 'true';
+  setTimeout(() => document.getElementById('chat-input').focus(), 60);
+  renderChatBody();
+  renderQuickReplies();
+}
+
+function closeChat() {
+  document.getElementById('chat-panel').hidden = true;
+  document.getElementById('chat-fab').dataset.active = 'false';
+}
+
+function isChatOpen() {
+  const p = document.getElementById('chat-panel');
+  return p && !p.hidden;
+}
+
+function appendAndRender(msg) {
+  appendMessage(state.app, msg);
+  renderChatBody();
+}
+
+function handleChatSubmit(text) {
+  const t = (text || '').trim();
+  if (!t) return;
+  // Seed welcome into history if first interaction
+  const history = getHistory(state.app);
+  if (history.length === 0) {
+    appendMessage(state.app, { role: 'bot', text: BOTS[state.app].welcome });
+  }
+  appendAndRender({ role: 'user', text: t });
+
+  // Show typing indicator
+  const body = document.getElementById('chat-body');
+  const typing = document.createElement('div');
+  typing.className = 'chat-msg chat-msg--bot';
+  typing.innerHTML = `<div class="chat-bubble chat-typing" aria-label="Assistant is typing"><span class="chat-typing-dot"></span><span class="chat-typing-dot"></span><span class="chat-typing-dot"></span></div>`;
+  body.appendChild(typing);
+  body.scrollTop = body.scrollHeight;
+
+  const delay = 420 + Math.min(900, t.length * 14);
+  setTimeout(() => {
+    typing.remove();
+    const result = matchIntent(state.app, t, chatContext());
+    appendAndRender({ role: 'bot', text: result.reply, citations: result.citations || [] });
+    // Update quick replies if intent suggests new ones
+    if (result.quickReplies) {
+      const q = document.getElementById('chat-quick');
+      q.innerHTML = result.quickReplies.map((r) => `<button class="chat-quick-chip" type="button" data-action="chat-quick" data-text="${esc(r)}">${esc(r)}</button>`).join('');
+    } else {
+      renderQuickReplies();
+    }
+  }, delay);
+}
+
+function resetChat() {
+  resetHistory(state.app);
+  renderChatBody();
+  renderQuickReplies();
+}
+
 /* ── Toast ───────────────────────────────────────────────── */
 
 function toast(msg, kind) {
@@ -1943,6 +2086,29 @@ function bindEvents() {
       }
       return;
     }
+    if (action === 'chat-quick') {
+      e.preventDefault();
+      const text = a.dataset.text;
+      const input = document.getElementById('chat-input');
+      input.value = '';
+      handleChatSubmit(text);
+      return;
+    }
+    if (action === 'chat-cite') {
+      // default <a> behaviour will navigate; we just close the chat optionally if it's a route change away
+      return;
+    }
+    if (action === 'chat-cite-action') {
+      e.preventDefault();
+      const type = a.dataset.citeType;
+      const id = a.dataset.citeId;
+      if (type === 'open-draft' && id) {
+        closeChat();
+        navigate({ app: 'hank', route: 'clients/' + id, query: { client: id, tab: 'overview' } });
+        setTimeout(() => openDraftModal(id), 100);
+      }
+      return;
+    }
   });
 
   // Dialog close
@@ -1954,6 +2120,18 @@ function bindEvents() {
   document.getElementById('cmd-trigger').addEventListener('click', openCmd);
   document.getElementById('cmd-root').addEventListener('click', (e) => {
     if (e.target.matches('[data-cmd-close]')) closeCmd();
+  });
+
+  // Chat widget
+  document.getElementById('chat-fab').addEventListener('click', openChat);
+  document.getElementById('chat-close').addEventListener('click', closeChat);
+  document.getElementById('chat-reset').addEventListener('click', resetChat);
+  document.getElementById('chat-input-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = document.getElementById('chat-input');
+    const v = input.value;
+    input.value = '';
+    handleChatSubmit(v);
   });
 
   // Keyboard
@@ -1968,6 +2146,7 @@ function bindEvents() {
       const dlgOpen = document.getElementById('dialog-root').dataset.open === 'true';
       if (cmdOpen) closeCmd();
       else if (dlgOpen) closeDialog();
+      else if (isChatOpen()) closeChat();
     }
   });
 
