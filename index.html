@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>(function(){try{if(localStorage.getItem("supernal_heritage_unlocked")==="1"){document.documentElement.classList.add("unlocked");}else{document.documentElement.classList.add("locked");}}catch(e){document.documentElement.classList.add("locked");}})();</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Heritage · AI Employee Operating System · Supernal Demo</title>
+<meta name="description" content="Demo of the Heritage AI Employee Operating System — Hank (CRM), Foreman (Project Manager), Sam (Help Desk) on a shared data layer.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="proposal-gate" id="proposal-gate" role="dialog" aria-modal="true" aria-labelledby="proposal-gate-title">
+  <div class="proposal-gate-card">
+    <div class="proposal-gate-logo" role="img" aria-label="Supernal"></div>
+    <h1 id="proposal-gate-title" class="visually-hidden">Heritage demo</h1>
+    <p class="proposal-gate-subtitle">Enter the password to view.</p>
+    <form id="proposal-gate-form" class="proposal-gate-form" autocomplete="off">
+      <label for="proposal-gate-input" class="visually-hidden">Password</label>
+      <input type="password" id="proposal-gate-input" placeholder="Password" autocomplete="off" required>
+      <button type="submit" class="proposal-gate-button">Unlock</button>
+    </form>
+    <p id="proposal-gate-error" class="proposal-gate-error" hidden>Incorrect password.</p>
+  </div>
+</div>
+
+<div class="app-shell">
+  <header class="topbar">
+    <a class="topbar-brand" href="#/hank/clients" aria-label="Heritage demo home">
+      <img src="assets/supernal-logo.svg" alt="Supernal">
+    </a>
+
+    <div class="app-switcher" id="app-switcher">
+      <button class="app-switcher-trigger" id="app-switcher-trigger" type="button" aria-haspopup="menu" aria-expanded="false">
+        <span class="app-icon" id="app-switcher-icon">H</span>
+        <span class="app-name">
+          <strong id="app-switcher-name">Hank</strong>
+          <span id="app-switcher-sub">CRM</span>
+        </span>
+        <svg class="caret" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M3 5l3 3 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="app-switcher-menu" role="menu" id="app-switcher-menu"></div>
+    </div>
+
+    <div class="topbar-search">
+      <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10.5 10.5L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input type="search" placeholder="Search clients, tasks, tickets…" aria-label="Search">
+    </div>
+
+    <div class="topbar-actions">
+      <button class="cmd-trigger" id="cmd-trigger" type="button" aria-label="Open Ask Anything">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6h8M4 9h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <rect x="2" y="3" width="12" height="10" rx="2" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+        Ask Anything
+        <span class="kbd">⌘K</span>
+      </button>
+      <div id="following-chip-slot"></div>
+      <div class="user-chip" title="Tom Sr.">TS</div>
+    </div>
+  </header>
+
+  <div class="body-layout">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main" id="main" tabindex="-1"></main>
+  </div>
+</div>
+
+<div class="cmd-root" id="cmd-root" role="dialog" aria-modal="true" aria-label="Ask Anything">
+  <div class="cmd-backdrop" data-cmd-close></div>
+  <div class="cmd" id="cmd">
+    <div class="cmd-search">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10.5 10.5L13 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input type="text" id="cmd-input" placeholder="Ask anything — try ⌘ or ↓ to browse" autocomplete="off" spellcheck="false">
+      <span class="kbd">esc</span>
+    </div>
+    <div class="cmd-list" id="cmd-list"></div>
+    <div class="cmd-answer" id="cmd-answer"></div>
+  </div>
+</div>
+
+<div class="dialog-root" id="dialog-root" role="dialog" aria-modal="true" aria-hidden="true">
+  <div class="dialog-backdrop" data-dialog-close></div>
+  <div class="dialog dialog--lg" id="dialog"></div>
+</div>
+
+<div class="toast-root" id="toast-root" aria-live="polite"></div>
+
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
