@@ -105,11 +105,6 @@
           </svg>
           <span>Call</span>
         </button>
-        <button class="chat-icon-btn" id="chat-reset" type="button" aria-label="Reset conversation" title="Reset">
-          <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
-            <path d="M3 8a5 5 0 109-3l-2-1M3 8v3M3 8h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
         <button class="chat-icon-btn" id="chat-close" type="button" aria-label="Close assistant" title="Close">
           <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
             <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -122,8 +117,8 @@
     <form class="chat-input-form" id="chat-input-form" autocomplete="off">
       <input type="text" id="chat-input" placeholder="Ask Hank…" aria-label="Ask the assistant">
       <button type="submit" class="chat-send" id="chat-send" aria-label="Send">
-        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
-          <path d="M2.5 8L13.5 3L11 8L13.5 13L2.5 8Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M3 11.5L20 4l-7.5 17-2.5-7.5L3 11.5z" fill="currentColor"/>
         </svg>
       </button>
     </form>
@@ -140,13 +135,7 @@
   <div class="call-backdrop" data-call-close></div>
   <div class="call-card" role="dialog" aria-modal="true" aria-label="Call Foreman">
     <header class="call-card-head">
-      <div class="call-card-bot">
-        <span class="app-icon app-icon--foreman">F</span>
-        <div class="call-card-bot-text">
-          <strong>Foreman</strong>
-          <span id="call-status">Tap start to dial</span>
-        </div>
-      </div>
+      <strong id="call-card-title">Foreman</strong>
       <button class="chat-icon-btn" type="button" data-call-close aria-label="Close call">
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" aria-hidden="true">
           <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
@@ -154,8 +143,16 @@
       </button>
     </header>
     <div class="call-card-body">
-      <div class="call-orb" id="call-orb"><span></span><span></span><span></span></div>
-      <p class="call-hint" id="call-hint">Ask Foreman for the Monday rundown on any client — Koenigsberg, Westbrook, Hartmann, Castellanos, or Beaumont.</p>
+      <div class="call-portrait-wrap">
+        <span class="call-pulse" aria-hidden="true"></span>
+        <span class="call-pulse call-pulse--delayed" aria-hidden="true"></span>
+        <span class="call-portrait" id="call-portrait" role="img" aria-label="Foreman"></span>
+      </div>
+      <div class="call-meta">
+        <span class="call-status-line" id="call-status">Tap start to dial</span>
+        <span class="call-role">Project Manager</span>
+      </div>
+      <p class="call-hint" id="call-hint">Try saying: <em>"Rundown on Koenigsberg"</em> or <em>"What's overdue this week?"</em></p>
     </div>
     <div class="call-card-actions">
       <button class="call-action-btn call-action-btn--primary" id="call-start" type="button">Start call</button>

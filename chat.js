@@ -11,33 +11,29 @@ export const BOTS = {
   hank: {
     id: 'hank',
     name: 'Hank',
-    sub: 'Client context',
+    sub: 'CRM',
     initial: 'H',
     accentClass: 'app-icon--hank',
     avatar: 'assets/hank.png',
     welcome:
-      "Hi — Hank here. Ask about any prospect or client by name, the morning digest, who is at risk, or to draft outbound. I cite the record on every answer.",
+      'Hi, I\'m Hank, your CRM. Try: "Where are we on Koenigsberg?" or "Who\'s at risk?"',
     starters: () => [
       'Where are we on Koenigsberg?',
       "Who's at risk?",
-      "What's in the morning digest?",
-      'Draft a follow-up to Whitcombe',
     ],
   },
   foreman: {
     id: 'foreman',
     name: 'Foreman',
-    sub: 'Tasks & meetings',
+    sub: 'Project Manager',
     initial: 'F',
     accentClass: 'app-icon--foreman',
     avatar: 'assets/rex-foreman.jpg',
     welcome:
-      "Foreman here. Ask what slipped, who has what on their plate, or the prep cadence for any engagement. I answer with sourced records.",
+      'Hi, I\'m Foreman, your project manager. Try: "Rundown on Koenigsberg" or "What\'s overdue this week?"',
     starters: () => [
-      'What slipped this week?',
-      'Show me overdue tasks',
-      "What meetings are coming up?",
-      'Prep cadence across active clients',
+      'Rundown on Koenigsberg',
+      "What's overdue this week?",
     ],
   },
   sam: {
@@ -48,12 +44,10 @@ export const BOTS = {
     accentClass: 'app-icon--sam',
     avatar: 'assets/celeste.png',
     welcome:
-      "Celeste here. Ask about open tickets, escalations, containment, or knowledge base conflicts. Every answer carries citations.",
+      'Hi, I\'m Celeste, your client concierge. Try: "What\'s escalated?" or "Containment rate this month."',
     starters: () => [
-      "What's escalated right now?",
+      "What's escalated?",
       'Containment rate this month',
-      'Tickets aged over 24 hours',
-      'Are there any KB conflicts?',
     ],
   },
 };

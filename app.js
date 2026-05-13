@@ -59,7 +59,7 @@ const APPS = {
     sub: 'Project Manager',
     initial: 'F',
     avatar: 'assets/rex-foreman.jpg',
-    desc: 'Shared task layer. Meetings, cadence, digests.',
+    desc: 'Project Manager. Meetings, cadence, digests.',
     default: 'rundown',
     sidebar: [
       { id: 'rundown', label: 'Monday rundown', icon: 'rundown', route: 'rundown' },
@@ -1994,6 +1994,14 @@ function openCallOverlay() {
   const overlay = document.getElementById('call-overlay');
   overlay.hidden = false;
   document.body.dataset.callOpen = 'true';
+  const bot = BOTS[state.app];
+  const portrait = document.getElementById('call-portrait');
+  if (portrait && bot && bot.avatar) {
+    portrait.style.backgroundImage = `url('${bot.avatar}')`;
+    portrait.setAttribute('aria-label', bot.name);
+  }
+  const title = document.getElementById('call-card-title');
+  if (title && bot) title.textContent = bot.name;
   setCallStatus('Tap start to dial');
   document.getElementById('call-start').hidden = false;
   document.getElementById('call-end').hidden = true;
@@ -2013,8 +2021,8 @@ function setCallStatus(text) {
 }
 
 function setOrbState(state) {
-  const orb = document.getElementById('call-orb');
-  if (orb) orb.dataset.state = state;
+  const wrap = document.querySelector('.call-portrait-wrap');
+  if (wrap) wrap.dataset.state = state;
 }
 
 function pcmFloat32ToInt16Base64(float32) {
@@ -2406,7 +2414,6 @@ function bindEvents() {
   // Chat widget
   document.getElementById('chat-fab').addEventListener('click', openChat);
   document.getElementById('chat-close').addEventListener('click', closeChat);
-  document.getElementById('chat-reset').addEventListener('click', resetChat);
   document.getElementById('chat-call').addEventListener('click', openCallOverlay);
   document.getElementById('call-start').addEventListener('click', startCall);
   document.getElementById('call-end').addEventListener('click', () => endCall().then(closeCallOverlay));
