@@ -4,6 +4,16 @@ import { TASKS, MEETINGS, PREP_PROTOCOL, MONDAY_RUNDOWN, STATUSES, PRIORITIES, t
 import { TICKETS, KB_ARTICLES, SAVED_VIEWS, PERSONAS, PERFORMANCE, ticketsForClient, ticketById } from './data/support.js';
 import { BOTS, getHistory, appendMessage, resetHistory, matchIntent, suggestedReplies } from './chat.js';
 
+const FOREMAN_AGENT_ID = 'agent_7201krgqhnnbebmrv5vtntkwhzkp';
+let activeCallConversation = null;
+let elevenLabsClientPromise = null;
+function loadElevenLabsClient() {
+  if (!elevenLabsClientPromise) {
+    elevenLabsClientPromise = import('https://esm.sh/@elevenlabs/client@1.7.0');
+  }
+  return elevenLabsClientPromise;
+}
+
 /* ── Password gate (copied pattern from heritage-proposals) ── */
 
 const GATE_KEY = 'supernal_heritage_unlocked';
@@ -1970,6 +1980,91 @@ function resetChat() {
   renderQuickReplies();
 }
 
+/* ── Call (ElevenLabs Conversational AI) ─────────────────── */
+
+function openCallOverlay() {
+  const overlay = document.getElementById('call-overlay');
+  overlay.hidden = false;
+  document.body.dataset.callOpen = 'true';
+  setCallStatus('Tap start to dial');
+  document.getElementById('call-start').hidden = false;
+  document.getElementById('call-end').hidden = true;
+  setOrbState('idle');
+}
+
+function closeCallOverlay() {
+  endCall();
+  const overlay = document.getElementById('call-overlay');
+  overlay.hidden = true;
+  delete document.body.dataset.callOpen;
+}
+
+function setCallStatus(text) {
+  const el = document.getElementById('call-status');
+  if (el) el.textContent = text;
+}
+
+function setOrbState(state) {
+  const orb = document.getElementById('call-orb');
+  if (orb) orb.dataset.state = state;
+}
+
+async function startCall() {
+  const startBtn = document.getElementById('call-start');
+  const endBtn = document.getElementById('call-end');
+  startBtn.disabled = true;
+  setCallStatus('Connecting…');
+  setOrbState('connecting');
+  try {
+    await navigator.mediaDevices.getUserMedia({ audio: true });
+    const { Conversation } = await loadElevenLabsClient();
+    activeCallConversation = await Conversation.startSession({
+      agentId: FOREMAN_AGENT_ID,
+      connectionType: 'webrtc',
+      onConnect: () => {
+        setCallStatus('Connected — speak to Foreman');
+        setOrbState('listening');
+        startBtn.hidden = true;
+        endBtn.hidden = false;
+        startBtn.disabled = false;
+      },
+      onDisconnect: () => {
+        setCallStatus('Call ended');
+        setOrbState('idle');
+        startBtn.hidden = false;
+        endBtn.hidden = true;
+        startBtn.disabled = false;
+        activeCallConversation = null;
+      },
+      onError: (err) => {
+        console.error('Foreman call error', err);
+        setCallStatus('Connection failed — try again');
+        setOrbState('idle');
+        startBtn.hidden = false;
+        endBtn.hidden = true;
+        startBtn.disabled = false;
+      },
+      onModeChange: (mode) => {
+        const m = mode && mode.mode ? mode.mode : mode;
+        if (m === 'speaking') { setCallStatus('Foreman is speaking'); setOrbState('speaking'); }
+        else if (m === 'listening') { setCallStatus('Listening…'); setOrbState('listening'); }
+      },
+    });
+  } catch (err) {
+    console.error('Foreman call init error', err);
+    setCallStatus(err && err.name === 'NotAllowedError' ? 'Microphone access denied' : 'Could not start call');
+    setOrbState('idle');
+    startBtn.disabled = false;
+  }
+}
+
+async function endCall() {
+  if (activeCallConversation) {
+    try { await activeCallConversation.endSession(); } catch (e) { /* noop */ }
+    activeCallConversation = null;
+  }
+}
+
 /* ── Toast ───────────────────────────────────────────────── */
 
 function toast(msg, kind) {
@@ -2126,6 +2221,12 @@ function bindEvents() {
   document.getElementById('chat-fab').addEventListener('click', openChat);
   document.getElementById('chat-close').addEventListener('click', closeChat);
   document.getElementById('chat-reset').addEventListener('click', resetChat);
+  document.getElementById('chat-call').addEventListener('click', openCallOverlay);
+  document.getElementById('call-start').addEventListener('click', startCall);
+  document.getElementById('call-end').addEventListener('click', () => endCall().then(closeCallOverlay));
+  document.getElementById('call-overlay').addEventListener('click', (e) => {
+    if (e.target.matches('[data-call-close]')) closeCallOverlay();
+  });
   document.getElementById('chat-input-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const input = document.getElementById('chat-input');
@@ -2144,7 +2245,9 @@ function bindEvents() {
     if (e.key === 'Escape') {
       const cmdOpen = document.getElementById('cmd-root').dataset.open === 'true';
       const dlgOpen = document.getElementById('dialog-root').dataset.open === 'true';
-      if (cmdOpen) closeCmd();
+      const callOpen = document.body.dataset.callOpen === 'true';
+      if (callOpen) closeCallOverlay();
+      else if (cmdOpen) closeCmd();
       else if (dlgOpen) closeDialog();
       else if (isChatOpen()) closeChat();
     }
