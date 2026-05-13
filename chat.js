@@ -14,6 +14,7 @@ export const BOTS = {
     sub: 'Client context',
     initial: 'H',
     accentClass: 'app-icon--hank',
+    avatar: 'assets/hank.png',
     welcome:
       "Hi — Hank here. Ask about any prospect or client by name, the morning digest, who is at risk, or to draft outbound. I cite the record on every answer.",
     starters: () => [
@@ -29,6 +30,7 @@ export const BOTS = {
     sub: 'Tasks & meetings',
     initial: 'F',
     accentClass: 'app-icon--foreman',
+    avatar: 'assets/rex-foreman.jpg',
     welcome:
       "Foreman here. Ask what slipped, who has what on their plate, or the prep cadence for any engagement. I answer with sourced records.",
     starters: () => [
@@ -40,12 +42,13 @@ export const BOTS = {
   },
   sam: {
     id: 'sam',
-    name: 'Sam',
-    sub: 'Help Desk · tickets & KB',
-    initial: 'S',
+    name: 'Celeste',
+    sub: 'Client Concierge',
+    initial: 'C',
     accentClass: 'app-icon--sam',
+    avatar: 'assets/celeste.png',
     welcome:
-      "Sam here. Ask about open tickets, escalations, containment, or knowledge base conflicts. Every answer carries citations.",
+      "Celeste here. Ask about open tickets, escalations, containment, or knowledge base conflicts. Every answer carries citations.",
     starters: () => [
       "What's escalated right now?",
       'Containment rate this month',

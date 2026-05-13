@@ -279,6 +279,19 @@ html.locked body { overflow: hidden; }
 .app-icon--foreman { background: var(--viz-0); }
 .app-icon--sam { background: var(--viz-1); color: var(--fg); }
 
+.app-icon--image {
+  background-size: cover;
+  background-position: center top;
+  background-color: var(--surface-2);
+  color: transparent;
+  text-indent: -9999px;
+  overflow: hidden;
+}
+
+.app-icon--image.app-icon--sam { background-position: center 28%; }
+.app-icon--image.app-icon--foreman { background-position: center 28%; }
+.app-icon--image.app-icon--hank { background-position: center 22%; }
+
 .app-name {
   display: flex;
   flex-direction: column;

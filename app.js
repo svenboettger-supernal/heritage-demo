@@ -44,6 +44,7 @@ const APPS = {
     name: 'Hank',
     sub: 'CRM',
     initial: 'H',
+    avatar: 'assets/hank.png',
     desc: 'One client record. Stages, health, happy paths.',
     default: 'clients',
     sidebar: [
@@ -57,6 +58,7 @@ const APPS = {
     name: 'Foreman',
     sub: 'Project Manager',
     initial: 'F',
+    avatar: 'assets/rex-foreman.jpg',
     desc: 'Shared task layer. Meetings, cadence, digests.',
     default: 'rundown',
     sidebar: [
@@ -68,9 +70,10 @@ const APPS = {
   },
   sam: {
     id: 'sam',
-    name: 'Sam',
-    sub: 'Help Desk',
-    initial: 'S',
+    name: 'Celeste',
+    sub: 'Client Concierge',
+    initial: 'C',
+    avatar: 'assets/celeste.png',
     desc: 'In-app support, citations, escalations.',
     default: 'tickets',
     sidebar: [
@@ -80,6 +83,20 @@ const APPS = {
     ],
   },
 };
+
+function applyAppIcon(el, app) {
+  if (!el || !app) return;
+  el.className = `app-icon app-icon--${app.id}`;
+  if (app.avatar) {
+    el.classList.add('app-icon--image');
+    el.style.backgroundImage = `url('${app.avatar}')`;
+    el.textContent = '';
+  } else {
+    el.classList.remove('app-icon--image');
+    el.style.backgroundImage = '';
+    el.textContent = app.initial;
+  }
+}
 
 /* ── State + URL ──────────────────────────────────────────── */
 
@@ -256,8 +273,7 @@ function svg(name) {
 function renderShell() {
   // App-switcher trigger
   const app = APPS[state.app];
-  document.getElementById('app-switcher-icon').textContent = app.initial;
-  document.getElementById('app-switcher-icon').className = `app-icon app-icon--${app.id}`;
+  applyAppIcon(document.getElementById('app-switcher-icon'), app);
   document.getElementById('app-switcher-name').textContent = app.name;
   document.getElementById('app-switcher-sub').textContent = app.sub;
 
@@ -265,7 +281,7 @@ function renderShell() {
   const menu = document.getElementById('app-switcher-menu');
   menu.innerHTML = Object.values(APPS).map((a) => `
     <button class="app-switcher-item" data-action="switch-app" data-app="${a.id}" data-current="${a.id === state.app}">
-      <span class="app-icon app-icon--${a.id}">${a.initial}</span>
+      <span class="app-icon app-icon--${a.id}${a.avatar ? ' app-icon--image' : ''}"${a.avatar ? ` style="background-image:url('${a.avatar}')"` : ''}>${a.avatar ? '' : a.initial}</span>
       <span class="app-switcher-item-meta">
         <strong>${esc(a.name)} · ${esc(a.sub)}</strong>
         <span>${esc(a.desc)}</span>
@@ -1400,7 +1416,7 @@ function renderSamTicketDetail() {
           ${t.conversation.map((c) => `
             <div class="message" data-author="${esc(c.author)}">
               <div class="message-head">
-                <span class="message-author">${esc(c.author === 'user' ? t.user : c.author === 'sam' ? 'Sam (AI)' : (c.who || 'Heritage'))}</span>
+                <span class="message-author">${esc(c.author === 'user' ? t.user : c.author === 'sam' ? 'Celeste (AI)' : (c.who || 'Heritage'))}</span>
                 <span>${esc(c.when || '')}</span>
               </div>
               <div class="message-body">${esc(c.body)}</div>
@@ -1838,11 +1854,10 @@ function closeDialog() {
 function renderChatShell() {
   const bot = BOTS[state.app];
   const fabIcon = document.getElementById('chat-fab-icon');
-  fabIcon.textContent = bot.initial;
-  fabIcon.className = 'chat-fab-icon ' + bot.accentClass;
+  applyAppIcon(fabIcon, bot);
+  fabIcon.classList.add('chat-fab-icon');
   const headIcon = document.getElementById('chat-head-icon');
-  headIcon.textContent = bot.initial;
-  headIcon.className = 'app-icon ' + bot.accentClass;
+  applyAppIcon(headIcon, bot);
   document.getElementById('chat-head-name').textContent = bot.name;
   document.getElementById('chat-head-sub').textContent = bot.sub;
   document.getElementById('chat-input').placeholder = `Ask ${bot.name}…`;
