@@ -6,13 +6,6 @@ import { BOTS, getHistory, appendMessage, resetHistory, matchIntent, suggestedRe
 
 const FOREMAN_AGENT_ID = 'agent_7201krgqhnnbebmrv5vtntkwhzkp';
 let activeCallConversation = null;
-let elevenLabsClientPromise = null;
-function loadElevenLabsClient() {
-  if (!elevenLabsClientPromise) {
-    elevenLabsClientPromise = import('https://esm.sh/@elevenlabs/client@1.7.0');
-  }
-  return elevenLabsClientPromise;
-}
 
 /* ── Password gate (copied pattern from heritage-proposals) ── */
 
@@ -2009,6 +2002,170 @@ function setOrbState(state) {
   if (orb) orb.dataset.state = state;
 }
 
+function pcmFloat32ToInt16Base64(float32) {
+  const int16 = new Int16Array(float32.length);
+  for (let i = 0; i < float32.length; i++) {
+    const s = Math.max(-1, Math.min(1, float32[i]));
+    int16[i] = s < 0 ? s * 0x8000 : s * 0x7fff;
+  }
+  const bytes = new Uint8Array(int16.buffer);
+  let binary = '';
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+}
+
+function base64ToInt16(b64) {
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new Int16Array(bytes.buffer);
+}
+
+function resampleFloat32(input, inRate, outRate) {
+  if (inRate === outRate) return input;
+  const ratio = inRate / outRate;
+  const outLen = Math.floor(input.length / ratio);
+  const out = new Float32Array(outLen);
+  for (let i = 0; i < outLen; i++) {
+    const srcIdx = i * ratio;
+    const i0 = Math.floor(srcIdx);
+    const i1 = Math.min(i0 + 1, input.length - 1);
+    const t = srcIdx - i0;
+    out[i] = input[i0] * (1 - t) + input[i1] * t;
+  }
+  return out;
+}
+
+class ForemanCall {
+  constructor(handlers) {
+    this.h = handlers;
+    this.ws = null;
+    this.audioCtx = null;
+    this.stream = null;
+    this.processor = null;
+    this.source = null;
+    this.playCursor = 0;
+    this.inputSampleRate = 16000;
+    this.outputSampleRate = 16000;
+    this.ended = false;
+    this.lastAgentEventTs = 0;
+  }
+
+  async start() {
+    this.stream = await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
+    });
+    this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    this.playCursor = this.audioCtx.currentTime;
+    this.ws = new WebSocket(
+      `wss://api.elevenlabs.io/v1/convai/conversation?agent_id=${FOREMAN_AGENT_ID}`
+    );
+    this.ws.onopen = () => {
+      this.ws.send(JSON.stringify({ type: 'conversation_initiation_client_data' }));
+      this.h.onConnect && this.h.onConnect();
+      this.startCapture();
+    };
+    this.ws.onmessage = (e) => this.handleMessage(e);
+    this.ws.onerror = (e) => { this.h.onError && this.h.onError(e); };
+    this.ws.onclose = () => { if (!this.ended) this.h.onDisconnect && this.h.onDisconnect(); };
+  }
+
+  startCapture() {
+    this.source = this.audioCtx.createMediaStreamSource(this.stream);
+    const bufSize = 4096;
+    this.processor = this.audioCtx.createScriptProcessor(bufSize, 1, 1);
+    this.source.connect(this.processor);
+    this.processor.connect(this.audioCtx.destination);
+    this.processor.onaudioprocess = (ev) => {
+      if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
+      const input = ev.inputBuffer.getChannelData(0);
+      const resampled = resampleFloat32(input, this.audioCtx.sampleRate, this.inputSampleRate);
+      const b64 = pcmFloat32ToInt16Base64(resampled);
+      this.ws.send(JSON.stringify({ user_audio_chunk: b64 }));
+    };
+  }
+
+  handleMessage(e) {
+    let data;
+    try { data = JSON.parse(e.data); } catch { return; }
+    switch (data.type) {
+      case 'conversation_initiation_metadata': {
+        const meta = data.conversation_initiation_metadata_event || {};
+        if (meta.user_input_audio_format) {
+          const m = String(meta.user_input_audio_format).match(/(\d+)/);
+          if (m) this.inputSampleRate = parseInt(m[1], 10);
+        }
+        if (meta.agent_output_audio_format) {
+          const m = String(meta.agent_output_audio_format).match(/(\d+)/);
+          if (m) this.outputSampleRate = parseInt(m[1], 10);
+        }
+        break;
+      }
+      case 'user_transcript':
+        this.h.onUserTranscript && this.h.onUserTranscript(
+          data.user_transcription_event?.user_transcript || ''
+        );
+        break;
+      case 'agent_response':
+        this.h.onAgentResponse && this.h.onAgentResponse(
+          data.agent_response_event?.agent_response || ''
+        );
+        break;
+      case 'audio': {
+        const b64 = data.audio_event?.audio_base_64;
+        if (b64) this.playAudio(b64);
+        this.h.onSpeaking && this.h.onSpeaking();
+        break;
+      }
+      case 'interruption':
+        this.playCursor = this.audioCtx.currentTime;
+        this.h.onListening && this.h.onListening();
+        break;
+      case 'ping': {
+        const evt = data.ping_event || {};
+        setTimeout(() => {
+          if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type: 'pong', event_id: evt.event_id }));
+          }
+        }, evt.ping_ms || 0);
+        break;
+      }
+    }
+  }
+
+  playAudio(b64) {
+    const int16 = base64ToInt16(b64);
+    const float32 = new Float32Array(int16.length);
+    for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 0x8000;
+    const buf = this.audioCtx.createBuffer(1, float32.length, this.outputSampleRate);
+    buf.copyToChannel(float32, 0);
+    const src = this.audioCtx.createBufferSource();
+    src.buffer = buf;
+    src.connect(this.audioCtx.destination);
+    const now = this.audioCtx.currentTime;
+    const startAt = Math.max(this.playCursor, now);
+    src.start(startAt);
+    this.playCursor = startAt + buf.duration;
+    src.onended = () => {
+      if (this.audioCtx && this.playCursor <= this.audioCtx.currentTime + 0.05) {
+        this.h.onListening && this.h.onListening();
+      }
+    };
+  }
+
+  async end() {
+    this.ended = true;
+    try { this.processor && this.processor.disconnect(); } catch {}
+    try { this.source && this.source.disconnect(); } catch {}
+    try { this.stream && this.stream.getTracks().forEach((t) => t.stop()); } catch {}
+    try { this.audioCtx && await this.audioCtx.close(); } catch {}
+    try { this.ws && this.ws.close(); } catch {}
+  }
+}
+
 async function startCall() {
   const startBtn = document.getElementById('call-start');
   const endBtn = document.getElementById('call-end');
@@ -2016,11 +2173,7 @@ async function startCall() {
   setCallStatus('Connecting…');
   setOrbState('connecting');
   try {
-    await navigator.mediaDevices.getUserMedia({ audio: true });
-    const { Conversation } = await loadElevenLabsClient();
-    activeCallConversation = await Conversation.startSession({
-      agentId: FOREMAN_AGENT_ID,
-      connectionType: 'websocket',
+    activeCallConversation = new ForemanCall({
       onConnect: () => {
         setCallStatus('Connected — speak to Foreman');
         setOrbState('listening');
@@ -2037,19 +2190,17 @@ async function startCall() {
         activeCallConversation = null;
       },
       onError: (err) => {
-        console.error('Foreman call error', err);
+        console.error('Foreman WS error', err);
         setCallStatus('Connection failed — try again');
         setOrbState('idle');
         startBtn.hidden = false;
         endBtn.hidden = true;
         startBtn.disabled = false;
       },
-      onModeChange: (mode) => {
-        const m = mode && mode.mode ? mode.mode : mode;
-        if (m === 'speaking') { setCallStatus('Foreman is speaking'); setOrbState('speaking'); }
-        else if (m === 'listening') { setCallStatus('Listening…'); setOrbState('listening'); }
-      },
+      onSpeaking: () => { setCallStatus('Foreman is speaking'); setOrbState('speaking'); },
+      onListening: () => { setCallStatus('Listening…'); setOrbState('listening'); },
     });
+    await activeCallConversation.start();
   } catch (err) {
     console.error('Foreman call init error', err);
     setCallStatus(err && err.name === 'NotAllowedError' ? 'Microphone access denied' : 'Could not start call');
@@ -2060,7 +2211,7 @@ async function startCall() {
 
 async function endCall() {
   if (activeCallConversation) {
-    try { await activeCallConversation.endSession(); } catch (e) { /* noop */ }
+    try { await activeCallConversation.end(); } catch (e) { /* noop */ }
     activeCallConversation = null;
   }
 }
