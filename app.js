@@ -2051,7 +2051,16 @@ class ForemanCall {
     this.inputSampleRate = 16000;
     this.outputSampleRate = 16000;
     this.ended = false;
-    this.lastAgentEventTs = 0;
+    this.activeSources = new Set();
+  }
+
+  stopPlayback() {
+    for (const src of this.activeSources) {
+      try { src.onended = null; src.stop(); } catch {}
+      try { src.disconnect(); } catch {}
+    }
+    this.activeSources.clear();
+    if (this.audioCtx) this.playCursor = this.audioCtx.currentTime;
   }
 
   async start() {
@@ -2121,7 +2130,7 @@ class ForemanCall {
         break;
       }
       case 'interruption':
-        this.playCursor = this.audioCtx.currentTime;
+        this.stopPlayback();
         this.h.onListening && this.h.onListening();
         break;
       case 'ping': {
@@ -2137,6 +2146,7 @@ class ForemanCall {
   }
 
   playAudio(b64) {
+    if (this.ended) return;
     const int16 = base64ToInt16(b64);
     const float32 = new Float32Array(int16.length);
     for (let i = 0; i < int16.length; i++) float32[i] = int16[i] / 0x8000;
@@ -2149,8 +2159,12 @@ class ForemanCall {
     const startAt = Math.max(this.playCursor, now);
     src.start(startAt);
     this.playCursor = startAt + buf.duration;
+    this.activeSources.add(src);
     src.onended = () => {
-      if (this.audioCtx && this.playCursor <= this.audioCtx.currentTime + 0.05) {
+      this.activeSources.delete(src);
+      try { src.disconnect(); } catch {}
+      if (this.audioCtx && this.activeSources.size === 0
+          && this.playCursor <= this.audioCtx.currentTime + 0.05) {
         this.h.onListening && this.h.onListening();
       }
     };
@@ -2158,6 +2172,8 @@ class ForemanCall {
 
   async end() {
     this.ended = true;
+    this.stopPlayback();
+    try { this.processor && (this.processor.onaudioprocess = null); } catch {}
     try { this.processor && this.processor.disconnect(); } catch {}
     try { this.source && this.source.disconnect(); } catch {}
     try { this.stream && this.stream.getTracks().forEach((t) => t.stop()); } catch {}
@@ -2167,6 +2183,10 @@ class ForemanCall {
 }
 
 async function startCall() {
+  if (activeCallConversation) {
+    try { await activeCallConversation.end(); } catch {}
+    activeCallConversation = null;
+  }
   const startBtn = document.getElementById('call-start');
   const endBtn = document.getElementById('call-end');
   startBtn.disabled = true;
