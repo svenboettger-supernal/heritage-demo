@@ -2020,7 +2020,7 @@ async function startCall() {
     const { Conversation } = await loadElevenLabsClient();
     activeCallConversation = await Conversation.startSession({
       agentId: FOREMAN_AGENT_ID,
-      connectionType: 'webrtc',
+      connectionType: 'websocket',
       onConnect: () => {
         setCallStatus('Connected — speak to Foreman');
         setOrbState('listening');
