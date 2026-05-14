@@ -71,7 +71,7 @@ const APPS = {
   sam: {
     id: 'sam',
     name: 'Celeste',
-    sub: 'Client Concierge',
+    sub: 'Help Desk',
     initial: 'C',
     avatar: 'assets/celeste.png',
     desc: 'In-app support, citations, escalations.',
@@ -1651,10 +1651,10 @@ const CMD_PROMPTS = [
   {
     id: 'koenigsberg-status',
     prompt: 'Where are we on Koenigsberg?',
-    answer: `Koenigsberg is on track. IR2 letter sent May 10. Partner Review locked for May 22. The Berlin holding company filing is the priority item — Daniel Roth sent revised v2 of the counsel letter on May 9; Jessica is merging it into the Heritage version. Margit requested to be CC'd on accountant correspondence going forward (handled in T-2043).`,
+    answer: `Koenigsberg is on track. IR2 Meeting Letter sent May 10. IR3 locked for May 22 with Craig + Yvonne + Keith Meltzer. The Jake Koenigsberg life insurance underwriting packet is the priority item — Jen is finalizing medical disclosures before submitting to the carrier (T-2042). Yvonne is now CC'd on accountant correspondence (handled in T-2043).`,
     citations: [
       { label: 'Meeting · IR2 May 10', href: '#/foreman/meetings/mtg-koenigsberg-ir2?client=koenigsberg' },
-      { label: 'Task T-2042 · Berlin holding letter', href: '#/foreman/tasks/T-2042?client=koenigsberg' },
+      { label: 'Task T-2042 · Jake life insurance packet', href: '#/foreman/tasks/T-2042?client=koenigsberg' },
       { label: 'Client record · Koenigsberg', href: '#/hank/clients/koenigsberg?client=koenigsberg' },
     ],
   },
@@ -1662,50 +1662,50 @@ const CMD_PROMPTS = [
     id: 'slipped-week',
     prompt: 'What slipped this week?',
     answer: `Three items slipped:
-• Brooks-Halley Q1 letter (T-2045) — held since pace concerns surfaced. Recovery call May 14.
-• Brooks-Halley cousin trust draft (T-2046) — Pim & Whittaker v3 overdue since April 15.
-• Whitcombe IR1 — never locked. Lawrence Day silent on consent forms.`,
+• Haugland Q1 Renewal Letter (T-2045) — still drafting; blocked until Giamo unblock. Tom Sr. follow-up call May 14.
+• Haugland Phase II Letter (T-2046) — pending Giamo follow-up since April.
+• Mills Vic valuation (T-2048) — Goodman Marks two weeks past target.`,
     citations: [
-      { label: 'Task T-2045 · Q1 letter', href: '#/foreman/tasks/T-2045' },
-      { label: 'Task T-2046 · Pim revisions', href: '#/foreman/tasks/T-2046' },
-      { label: 'Task T-2047 · Lock Whitcombe IR1', href: '#/foreman/tasks/T-2047' },
+      { label: 'Task T-2045 · Haugland Q1', href: '#/foreman/tasks/T-2045' },
+      { label: 'Task T-2046 · Haugland Phase II', href: '#/foreman/tasks/T-2046' },
+      { label: 'Task T-2048 · Mills Vic valuation', href: '#/foreman/tasks/T-2048' },
     ],
   },
   {
     id: 'ir2-cadence',
     prompt: 'Prep status for IR2 across active clients',
     answer: `Snapshot:
-• Koenigsberg — IR2 Done (May 10, letter sent).
-• Saint Croix — IR2 Done.
-• Aldermount — IR2 On Track (June 10).
-• Helmsley — Upcoming (after IR1 May 24).
-• Brooks-Halley — IR2 At Risk (no letter from May 8 attempt).
-• Devonshire — At Risk (waiting on Westshore advisor return May 20).
-• Whitcombe — Upcoming (blocked on IR1).`,
+• Koenigsberg — IR2 Done (May 10, Meeting Letter sent).
+• Chrinian — IR2 Done (Apr 14, KM webinar).
+• Garten — IR2 On Track (June 10).
+• Penson — Upcoming (IR1 May 24 first).
+• Haugland — IR2 Slipped (pending Giamo).
+• Dana — IR2 At Risk (Goodman Marks valuations pending).
+• Mills — IR2 At Risk (Vic valuation pending).`,
     citations: [
       { label: 'Prep protocol overview', href: '#/foreman/prep' },
     ],
   },
   {
     id: 'old-partner-firm',
-    prompt: 'Open partner-firm tickets aged > 24h',
+    prompt: 'Open referral-partner tickets aged > 24h',
     answer: `Two tickets:
-• H-3042 — Westshore producer "asset sheet upload failed" — Escalated, 5h, 1h 12m to SLA breach. Assigned Henry.
-• H-3051 — Northcrest "PDF formatting issue" — Escalated, 3h, 2h 14m to SLA breach. Assigned Henry.
-Both routed to platform engineering rotation.`,
+• H-3042 — Diane "AI Platform Drop Box upload failed (Garten)" — Escalated, 5h, 1h 12m to SLA breach. Assigned Matt.
+• H-3051 — MH planning team "Flow Diagram PDF render issue (Garten)" — Escalated, 3h, 2h 14m to SLA breach. Assigned Matt.
+Both routed to AI Platform support rotation.`,
     citations: [
       { label: 'Ticket H-3042', href: '#/sam/tickets/H-3042' },
       { label: 'Ticket H-3051', href: '#/sam/tickets/H-3051' },
     ],
   },
   {
-    id: 'whitcombe-follow-up',
-    prompt: 'Draft a follow-up to Whitcombe principal',
-    answer: `Hank drafted a follow-up in Heritage voice. The draft prioritises locking the IR1 date this week, sets a clear next step, and asks Edward to confirm two candidate dates. No commitments are made on Heritage's behalf; the draft requests Jessica's approval before send.
+    id: 'mills-follow-up',
+    prompt: 'Draft a follow-up to Mills principal',
+    answer: `Hank drafted a follow-up in Heritage voice. The draft prioritizes confirming the Vic valuation timeline with Goodman Marks before the next Mills IR2, sets a clear next step, and asks John to confirm the IRA beneficiary update at NEPWM. No commitments made on Heritage's behalf; the draft requests Jen's approval before send.
 
 Opening the draft now.`,
     citations: [
-      { label: 'Client record · Whitcombe', href: '#/hank/clients/whitcombe?client=whitcombe' },
+      { label: 'Client record · Mills Family', href: '#/hank/clients/whitcombe?client=whitcombe' },
     ],
     onOpen: () => {
       navigate({ app: 'hank', route: 'clients/whitcombe', query: { client: 'whitcombe', tab: 'overview' } });
@@ -1795,45 +1795,45 @@ function openDraftModal(clientId) {
 }
 
 function draftSubject(c) {
-  if (c.id === 'whitcombe') return 'Locking the next step';
-  if (c.id === 'koenigsberg') return 'Partner Review · May 22';
+  if (c.id === 'whitcombe') return 'Confirming Vic valuation timeline';
+  if (c.id === 'koenigsberg') return 'IR3 · May 22 · Jake life insurance update';
   if (c.id === 'carrington') return 'Introducing Heritage Strategies';
   return `Following up · ${c.name}`;
 }
 
 function draftBody(c) {
-  if (c.id === 'whitcombe') return `Edward,
+  if (c.id === 'whitcombe') return `John,
 
-Following our Pre-Internal three weeks ago, we are ready to move to IR1. To keep the engagement on the cadence we discussed, I am asking for one of the two dates below.
+Following our IR2 review three weeks ago, we are ready to confirm the Vic valuation timeline before scheduling the next Phase II step. To keep the cadence we set, I am asking for confirmation on two items below.
 
-  · Wednesday, May 19, 3:30pm ET
-  · Friday, May 21, 11:00am ET
+  · Goodman Marks valuation completion target: Friday, May 22
+  · NEPWM IRA beneficiary update for Vic: confirmed by Jeff Filone
 
-If neither works, please send back the next two dates that do.
+If either is at risk, please send the next concrete date that does work and I will adjust the schedule accordingly.
 
-I am also sending Lawrence Day a separate note about the outstanding consents — we cannot lock the date without them. If there is a faster path on his side, I would like to hear it.
+I am also chasing Jeff Filone directly on the NEPWM side — we cannot close the IRA piece without his confirmation.
 
 Best,
-Jessica
+Jen
 Heritage Strategies`;
-  if (c.id === 'koenigsberg') return `Klaus,
+  if (c.id === 'koenigsberg') return `Craig,
 
-Confirming the Partner Review on May 22 at 10:00am ET. Daniel Roth is dialing in. Henry from Northcrest will join for the second half.
+Confirming IR3 on May 22 at 10:00am ET. Yvonne will join. Keith Meltzer is dialing in for the Nevada trust portion.
 
-The Berlin holding company filing remains the single priority. Daniel sent v2 of the counsel letter — Heritage is merging it into our version and will share the final this week.
+The Jake life insurance underwriting packet remains the single Q2 priority. Jen is finalizing the medical disclosures with Kearney & Raffanelli and will share the final packet before the meeting.
 
-Margit is now CC'd on all accountant correspondence going forward.
+Yvonne is now CC'd on all accountant correspondence going forward.
 
 Best,
 Tom`;
-  if (c.id === 'carrington') return `Diane,
+  if (c.id === 'carrington') return `Peter,
 
-Thank you for the introduction request. We help families and partner advisors run multi-generational planning at the level your note suggests.
+Carl DelPrete and Phil Giunta both spoke highly of the work you have built at Western Beef. We help families and operating-business owners run multi-generational planning at the level your situation calls for.
 
 I would like to set up a 30-minute introductory call this or next week. Please send two dates that work.
 
 Best,
-Jessica
+Tom
 Heritage Strategies`;
   return `Hello,
 

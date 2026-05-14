@@ -39,12 +39,12 @@ export const BOTS = {
   sam: {
     id: 'sam',
     name: 'Celeste',
-    sub: 'Client Concierge',
+    sub: 'Help Desk',
     initial: 'C',
     accentClass: 'app-icon--sam',
     avatar: 'assets/celeste.png',
     welcome:
-      'Hi, I\'m Celeste, your client concierge. Try: "What\'s escalated?" or "Containment rate this month."',
+      'Hi, I\'m Celeste, your Help Desk. Try: "What\'s escalated?" or "Containment rate this month."',
     starters: () => [
       "What's escalated?",
       'Containment rate this month',
@@ -461,7 +461,7 @@ export function matchIntent(app, text, context = {}) {
       };
     }
     // owner lookup
-    const owners = ['Tom Sr.', 'Jessica', 'Ryan', 'Patricia', 'Marcus', 'Henry', 'Diane'];
+    const owners = ['Tom Sr.', 'Tom Jr.', 'Jen', 'Marcus', 'Matt', 'Pat', 'Diane'];
     for (const o of owners) {
       if (lc(text).includes(lc(o.split(' ')[0])) && (lc(text).includes('task') || lc(text).includes('plate') || lc(text).includes('owns'))) {
         return tasksByOwner(o);
