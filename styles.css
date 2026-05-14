@@ -936,15 +936,19 @@ a:hover { color: var(--action-9); }
   padding-right: 12px;
 }
 
-.stage-step + .stage-step::before {
+.stage-step:not(:last-child)::after {
   content: '';
   position: absolute;
-  left: 0;
+  left: 28px;
   right: 0;
-  top: 14px;
+  top: 13px;
   height: 2px;
   background: var(--border-subtle);
   z-index: 0;
+}
+
+.stage-step[data-state="done"]:not(:last-child)::after {
+  background: var(--action);
 }
 
 .stage-step-bullet {
