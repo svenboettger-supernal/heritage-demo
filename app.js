@@ -537,7 +537,6 @@ function hankStakeholders(c) {
           ${avatarFor(s.name, 'sm')}
           <div>
             <div class="stakeholder-name">${esc(s.name)}</div>
-            <div class="stakeholder-meta">${esc([s.firm, s.email, s.phone].filter(Boolean).join(' · '))}</div>
           </div>
           <span class="role-tag">${esc(s.role)}</span>
         </div>
