@@ -237,6 +237,9 @@ html.locked body { overflow: hidden; }
 }
 
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-dropdown);
   height: var(--topbar-h);
   display: flex;
   align-items: center;
@@ -512,6 +515,11 @@ html.locked body { overflow: hidden; }
 }
 
 .sidebar {
+  position: sticky;
+  top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  max-height: calc(100vh - var(--topbar-h));
+  overflow-y: auto;
   background: var(--bg-sidebar);
   border-right: 1px solid var(--border-subtle);
   padding: 20px 12px;
