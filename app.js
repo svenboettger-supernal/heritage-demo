@@ -197,7 +197,7 @@ function healthPill(c) {
 }
 
 function fmtDate(d) {
-  if (!d) return '—';
+  if (!d) return '-';
   try {
     const dt = new Date(d);
     if (isNaN(dt)) return d;
@@ -206,7 +206,7 @@ function fmtDate(d) {
 }
 
 function shortDate(d) {
-  if (!d) return '—';
+  if (!d) return '-';
   try {
     const dt = new Date(d);
     if (isNaN(dt)) return d;
@@ -215,14 +215,14 @@ function shortDate(d) {
 }
 
 function fmtMoney(n) {
-  if (!n) return '—';
+  if (!n) return '-';
   if (n >= 1000000) return '$' + (n / 1000000).toFixed(1).replace('.0', '') + 'M';
   if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
   return '$' + n;
 }
 
 function fmtHours(n) {
-  if (n === null || n === undefined) return '—';
+  if (n === null || n === undefined) return '-';
   return `${n}h`;
 }
 
@@ -261,7 +261,7 @@ function personaBadge(personaId) {
 
 function clientLink(clientId, opts = {}) {
   const c = clientById(clientId);
-  if (!c) return esc(clientId || '—');
+  if (!c) return esc(clientId || '-');
   const followQuery = opts.follow ? `?client=${clientId}` : '';
   return `<a href="#/hank/clients/${clientId}${followQuery}" data-action="open-client" data-client="${clientId}">${esc(c.name)}</a>`;
 }
@@ -846,9 +846,9 @@ function renderForemanRundown() {
 
 /* ── Foreman · Tasks (Projects / My Tasks / All Tasks) ───── */
 
-// HER-08 · Demo signed-in persona. Jen is the operations lead in the seed
-// data (the "Jess" role from the call) — My Tasks filters to her.
-const SIGNED_IN_OWNER = 'Jen';
+// HER-08 · Demo signed-in persona. Jess (Jessica Varkey) is the operations
+// lead in the seed data — My Tasks filters to her.
+const SIGNED_IN_OWNER = 'Jess';
 
 function renderForemanTasks() {
   if (state.query.project) return renderForemanProject();
@@ -1316,7 +1316,7 @@ function renderForemanTaskDetail() {
               </div>
             `).join('')}
           </div>
-          <textarea placeholder="Add a comment — use @ to mention" rows="3"></textarea>
+          <textarea placeholder="Add a comment, use @ to mention" rows="3"></textarea>
           <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:8px">
             <button class="btn btn--ghost btn--sm">Cancel</button>
             <button class="btn btn--primary btn--sm">Comment</button>
@@ -1356,7 +1356,7 @@ function renderForemanTaskDetail() {
           <div class="avatar-row" style="margin-top:10px">
             ${avatarFor(t.owner)}
             ${avatarFor('Tom Sr.')}
-            ${avatarFor('Jessica')}
+            ${avatarFor('Jess')}
           </div>
           <button class="btn btn--ghost btn--sm mt-md">${svg('plus')} Add watcher</button>
         </div>
@@ -1652,7 +1652,7 @@ function renderSamTickets() {
 
   return `
     <div class="page-head">
-      <span class="page-kicker">Sam · Help Desk · CS Manager</span>
+      <span class="page-kicker">Celeste · Help Desk · CS Manager</span>
       <div class="page-head-row">
         <h1>Ticket inbox</h1>
         <div class="page-actions">
@@ -1769,7 +1769,7 @@ function renderSamTicketDetail() {
           `).join('')}
         </div>
         <div class="divider"></div>
-        <textarea placeholder="Type a reply to take over from Sam…" rows="3"></textarea>
+        <textarea placeholder="Type a reply to take over from Celeste…" rows="3"></textarea>
         <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:8px">
           <button class="btn btn--secondary btn--sm">Save as note</button>
           <button class="btn btn--primary btn--sm">Send reply</button>
@@ -1782,7 +1782,7 @@ function renderSamTicketDetail() {
           <div class="row" style="gap:10px;margin-top:10px">
             ${avatarFor(t.user || 'User')}
             <div>
-              <div style="font-weight:500">${esc(t.user || '—')}</div>
+              <div style="font-weight:500">${esc(t.user || '-')}</div>
               <div class="tiny muted">${esc(PERSONAS[t.persona]?.label || '')}</div>
             </div>
           </div>
@@ -1823,7 +1823,7 @@ function renderSamTicketDetail() {
 function renderSamKB() {
   return `
     <div class="page-head">
-      <span class="page-kicker">Sam · Help Desk</span>
+      <span class="page-kicker">Celeste · Help Desk</span>
       <div class="page-head-row">
         <h1>Knowledge base</h1>
         <div class="page-actions">
@@ -1866,7 +1866,7 @@ function renderSamReport() {
   const totalVol = p.volumeByPersona.reduce((a, b) => a + b.count, 0);
   return `
     <div class="page-head">
-      <span class="page-kicker">Sam · Help Desk</span>
+      <span class="page-kicker">Celeste · Help Desk</span>
       <div class="page-head-row">
         <h1>Performance · ${esc(p.monthLabel)}</h1>
         <button class="btn btn--secondary btn--sm">Download report</button>
@@ -1996,7 +1996,7 @@ const CMD_PROMPTS = [
   {
     id: 'koenigsberg-status',
     prompt: 'Where are we on Koenigsberg?',
-    answer: `Koenigsberg is on track. IR2 Meeting Letter sent May 10. IR3 locked for May 22 with Craig + Yvonne + Keith Meltzer. The Jake Koenigsberg life insurance underwriting packet is the priority item — Jen is finalizing medical disclosures before submitting to the carrier (T-2042). Yvonne is now CC'd on accountant correspondence (handled in T-2043).`,
+    answer: `Koenigsberg is on track. IR2 Meeting Letter sent May 10. IR3 locked for May 22 with Craig + Yvonne + Keith Meltzer. The Jake Koenigsberg life insurance underwriting packet is the priority item. Jess is finalizing medical disclosures before submitting to the carrier (T-2042). Yvonne is now CC'd on accountant correspondence (handled in T-2043).`,
     citations: [
       { label: 'Meeting · IR2 May 10', href: '#/foreman/meetings/mtg-koenigsberg-ir2?client=koenigsberg' },
       { label: 'Task T-2042 · Jake life insurance packet', href: '#/foreman/tasks/T-2042?client=koenigsberg' },
@@ -2007,9 +2007,9 @@ const CMD_PROMPTS = [
     id: 'slipped-week',
     prompt: 'What slipped this week?',
     answer: `Three items slipped:
-• Haugland Q1 Renewal Letter (T-2045) — still drafting; blocked until Giamo unblock. Tom Sr. follow-up call May 14.
-• Haugland Phase II Letter (T-2046) — pending Giamo follow-up since April.
-• Mills Vic valuation (T-2048) — Goodman Marks two weeks past target.`,
+• Haugland Q1 Renewal Letter (T-2045): still drafting; blocked until Giamo unblock. Tom Sr. follow-up call May 14.
+• Haugland Phase II Letter (T-2046): pending Giamo follow-up since April.
+• Mills Vic valuation (T-2048): Goodman Marks two weeks past target.`,
     citations: [
       { label: 'Task T-2045 · Haugland Q1', href: '#/foreman/tasks/T-2045' },
       { label: 'Task T-2046 · Haugland Phase II', href: '#/foreman/tasks/T-2046' },
@@ -2020,13 +2020,13 @@ const CMD_PROMPTS = [
     id: 'ir2-cadence',
     prompt: 'Prep status for IR2 across active clients',
     answer: `Snapshot:
-• Koenigsberg — IR2 Done (May 10, Meeting Letter sent).
-• Chrinian — IR2 Done (Apr 14, KM webinar).
-• Garten — IR2 On Track (June 10).
-• Penson — Upcoming (IR1 May 24 first).
-• Haugland — IR2 Slipped (pending Giamo).
-• Dana — IR2 At Risk (Goodman Marks valuations pending).
-• Mills — IR2 At Risk (Vic valuation pending).`,
+• Koenigsberg: IR2 Done (May 10, Meeting Letter sent).
+• Chrinian: IR2 Done (Apr 14, KM webinar).
+• Garten: IR2 On Track (June 10).
+• Penson: Upcoming (IR1 May 24 first).
+• Haugland: IR2 Slipped (pending Giamo).
+• Dana: IR2 At Risk (Goodman Marks valuations pending).
+• Mills: IR2 At Risk (Vic valuation pending).`,
     citations: [
       { label: 'Meetings & prep overview', href: '#/foreman/meetings' },
     ],
@@ -2035,8 +2035,8 @@ const CMD_PROMPTS = [
     id: 'old-partner-firm',
     prompt: 'Open referral-partner tickets aged > 24h',
     answer: `Two tickets:
-• H-3042 — Diane "AI Platform Drop Box upload failed (Garten)" — Escalated, 5h, 1h 12m to SLA breach. Assigned Matt.
-• H-3051 — MH planning team "Flow Diagram PDF render issue (Garten)" — Escalated, 3h, 2h 14m to SLA breach. Assigned Matt.
+• H-3042: Diane "AI Platform Drop Box upload failed (Garten)". Escalated, 5h, 1h 12m to SLA breach. Assigned Matt.
+• H-3051: MH planning team "Flow Diagram PDF render issue (Garten)". Escalated, 3h, 2h 14m to SLA breach. Assigned Matt.
 Both routed to AI Platform support rotation.`,
     citations: [
       { label: 'Ticket H-3042', href: '#/sam/tickets/H-3042' },
@@ -2046,7 +2046,7 @@ Both routed to AI Platform support rotation.`,
   {
     id: 'mills-follow-up',
     prompt: 'Draft a follow-up to Mills principal',
-    answer: `Hank drafted a follow-up in Heritage voice. The draft prioritizes confirming the Vic valuation timeline with Goodman Marks before the next Mills IR2, sets a clear next step, and asks John to confirm the IRA beneficiary update at NEPWM. No commitments made on Heritage's behalf; the draft requests Jen's approval before send.
+    answer: `Hank drafted a follow-up in Heritage voice. The draft prioritizes confirming the Vic valuation timeline with Goodman Marks before the next Mills IR2, sets a clear next step, and asks John to confirm the IRA beneficiary update at NEPWM. No commitments made on Heritage's behalf; the draft requests Jess's approval before send.
 
 Opening the draft now.`,
     citations: [
@@ -2156,16 +2156,16 @@ Following our IR2 review three weeks ago, we are ready to confirm the Vic valuat
 
 If either is at risk, please send the next concrete date that does work and I will adjust the schedule accordingly.
 
-I am also chasing Jeff Filone directly on the NEPWM side — we cannot close the IRA piece without his confirmation.
+I am also chasing Jeff Filone directly on the NEPWM side. We cannot close the IRA piece without his confirmation.
 
 Best,
-Jen
+Jess
 Heritage Strategies`;
   if (c.id === 'koenigsberg') return `Craig,
 
 Confirming IR3 on May 22 at 10:00am ET. Yvonne will join. Keith Meltzer is dialing in for the Nevada trust portion.
 
-The Jake life insurance underwriting packet remains the single Q2 priority. Jen is finalizing the medical disclosures with Kearney & Raffanelli and will share the final packet before the meeting.
+The Jake life insurance underwriting packet remains the single Q2 priority. Jess is finalizing the medical disclosures with Kearney & Raffanelli and will share the final packet before the meeting.
 
 Yvonne is now CC'd on all accountant correspondence going forward.
 
@@ -2707,7 +2707,7 @@ async function startCall() {
   try {
     activeCallConversation = new ForemanCall({
       onConnect: () => {
-        setCallStatus('Connected — speak to Foreman');
+        setCallStatus('Connected, speak to Foreman');
         setOrbState('listening');
         startBtn.hidden = true;
         endBtn.hidden = false;
@@ -2723,7 +2723,7 @@ async function startCall() {
       },
       onError: (err) => {
         console.error('Foreman WS error', err);
-        setCallStatus('Connection failed — try again');
+        setCallStatus('Connection failed, try again');
         setOrbState('idle');
         startBtn.hidden = false;
         endBtn.hidden = true;

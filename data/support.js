@@ -24,7 +24,7 @@ export const TICKETS = [
     clientId: 'koenigsberg',
     user: 'Yvonne Hernandez (Koenigsberg)',
     conversation: [
-      { author: 'user', when: '2026-05-12 09:14', body: 'Hi — Craig is asking where the updated Asset Sheet is for Q1.' },
+      { author: 'user', when: '2026-05-12 09:14', body: 'Hi, Craig is asking where the updated Asset Sheet is for Q1.' },
       {
         author: 'sam',
         when: '2026-05-12 09:14',
@@ -37,7 +37,7 @@ export const TICKETS = [
   },
   {
     id: 'H-3042',
-    subject: 'AI Platform Drop Box upload failed — Garten Asset Sheet',
+    subject: 'AI Platform Drop Box upload failed: Garten Asset Sheet',
     persona: 'l4-partner-firm',
     status: 'Escalated',
     assignee: 'Matt',
@@ -65,7 +65,7 @@ export const TICKETS = [
         author: 'human',
         who: 'Matt',
         when: '2026-05-12 06:30',
-        body: 'Diane — investigating. Workaround: try the older Drop Box endpoint. Will reach back in the next hour.',
+        body: 'Diane, investigating. Workaround: try the older Drop Box endpoint. Will reach back in the next hour.',
       },
     ],
   },
@@ -122,13 +122,13 @@ export const TICKETS = [
         author: 'human',
         who: 'Tom Sr.',
         when: '2026-05-12 08:14',
-        body: 'Ed — I have the draft on my desk and we are coordinating with Chris Giamo this week. Calling you in five.',
+        body: 'Ed, I have the draft on my desk and we are coordinating with Chris Giamo this week. Calling you in five.',
       },
     ],
   },
   {
     id: 'H-3045',
-    subject: 'Two-factor authentication setup — NEPWM partner access',
+    subject: 'Two-factor authentication setup: NEPWM partner access',
     persona: 'l2-partner-firm',
     status: 'AI resolved',
     assignee: 'Celeste',
@@ -153,7 +153,7 @@ export const TICKETS = [
   },
   {
     id: 'H-3046',
-    subject: 'Asset Sheet definition — operating vs investment for Mills LP',
+    subject: 'Asset Sheet definition: operating vs investment for Mills LP',
     persona: 'l3-partner-firm',
     status: 'Open',
     assignee: 'Celeste',
@@ -168,20 +168,20 @@ export const TICKETS = [
       {
         author: 'user',
         when: '2026-05-11 21:08',
-        body: 'What counts as an "operating asset" for the Mills Q2 Asset Sheet? The real estate LP — count it under operating or investment?',
+        body: 'What counts as an "operating asset" for the Mills Q2 Asset Sheet? The real estate LP: count it under operating or investment?',
       },
       {
         author: 'sam',
         when: '2026-05-11 21:09',
         body:
           'Real estate held in an LP counts as an operating asset only if the LP\'s primary purpose is operating, not investment. For Mills, the LP appears to be investment-purpose per the engagement letter. Excluded from operating bucket.',
-        citations: ['Glossary: Operating vs investment assets', 'Mills engagement letter — section 3.2'],
+        citations: ['Glossary: Operating vs investment assets', 'Mills engagement letter, section 3.2'],
       },
     ],
   },
   {
     id: 'H-3047',
-    subject: 'Book delivery delay — Chrinian Q1',
+    subject: 'Book delivery delay: Chrinian Q1',
     persona: 'l4-partner-firm',
     status: 'AI resolved',
     assignee: 'Celeste',
@@ -229,7 +229,7 @@ export const TICKETS = [
   },
   {
     id: 'H-3049',
-    subject: 'Wrong POC showing on Dana record — should be Gary Cassiello',
+    subject: 'Wrong POC showing on Dana record, should be Gary Cassiello',
     persona: 'l3-partner-firm',
     status: 'Open',
     assignee: 'Celeste',
@@ -244,7 +244,7 @@ export const TICKETS = [
       {
         author: 'user',
         when: '2026-05-12 04:10',
-        body: 'The Dana record lists my firm as "Cassiello & Co" — should be "Cassiello CPA". Please update.',
+        body: 'The Dana record lists my firm as "Cassiello & Co", should be "Cassiello CPA". Please update.',
       },
       {
         author: 'sam',
@@ -257,7 +257,7 @@ export const TICKETS = [
   },
   {
     id: 'H-3050',
-    subject: 'When is my next IR? — Penson family',
+    subject: 'When is my next IR? (Penson family)',
     persona: 'l1-hnw',
     status: 'AI resolved',
     assignee: 'Celeste',
@@ -280,13 +280,13 @@ export const TICKETS = [
   },
   {
     id: 'H-3051',
-    subject: 'Flow Diagram PDF render issue — Garten',
+    subject: 'Flow Diagram PDF render issue (Garten)',
     persona: 'l3-partner-firm',
     status: 'Escalated',
     assignee: 'Matt',
     priority: 'High',
     age: '3h',
-    lastAIResponse: 'Routed to AI Platform engineering — formatting issue.',
+    lastAIResponse: 'Routed to AI Platform engineering, formatting issue.',
     slaTimer: '2h 14m to breach',
     sentiment: 'frustrated',
     clientId: 'aldermount',
@@ -350,7 +350,7 @@ export const SAVED_VIEWS = [
 export const KB_ARTICLES = [
   {
     id: 'kb-001',
-    title: 'Asset Sheet — what it is and how to view it',
+    title: 'Asset Sheet: what it is and how to view it',
     topic: 'Client basics',
     freshnessSLA: '90 days',
     editorialOwner: 'Diane',
@@ -370,7 +370,7 @@ export const KB_ARTICLES = [
   },
   {
     id: 'kb-003',
-    title: 'NEPWM / Tiger 21 partner onboarding — 2FA setup',
+    title: 'NEPWM / Tiger 21 partner onboarding: 2FA setup',
     topic: 'Referral-partner admin',
     freshnessSLA: '90 days',
     editorialOwner: 'Diane',
@@ -380,13 +380,13 @@ export const KB_ARTICLES = [
   },
   {
     id: 'kb-004',
-    title: 'Operating vs investment assets — Heritage glossary',
+    title: 'Operating vs investment assets: Heritage glossary',
     topic: 'Glossary',
     freshnessSLA: '180 days',
     editorialOwner: 'Marcus',
     lastReviewed: '2026-01-12',
     hasConflict: true,
-    conflictNote: 'Conflicts with Mills engagement letter section 3.2 wording — flagged 2026-05-09.',
+    conflictNote: 'Conflicts with Mills engagement letter section 3.2 wording, flagged 2026-05-09.',
     version: '1.4',
   },
   {
@@ -401,7 +401,7 @@ export const KB_ARTICLES = [
   },
   {
     id: 'kb-006',
-    title: 'HNW client session management — AI Platform',
+    title: 'HNW client session management: AI Platform',
     topic: 'Compliance',
     freshnessSLA: '180 days',
     editorialOwner: 'Tom Sr.',

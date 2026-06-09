@@ -144,7 +144,7 @@ function clientSnapshot(c) {
 
 function taskSnapshot(t) {
   const c = t.clientId ? clientById(t.clientId) : null;
-  const reply = `**${t.title}** (${t.id})\n\nStatus: **${t.status}** · Priority: **${t.priority}** · Owner: **${t.owner}** · Due: **${t.due || '—'}**\n\n${t.description}`;
+  const reply = `**${t.title}** (${t.id})\n\nStatus: **${t.status}** · Priority: **${t.priority}** · Owner: **${t.owner}** · Due: **${t.due || 'not set'}**\n\n${t.description}`;
   const citations = [
     { label: `Task · ${t.id}`, href: `#/foreman/tasks/${t.id}${c ? '?client=' + c.id : ''}` },
   ];
@@ -169,7 +169,7 @@ function atRiskSummary() {
   const risky = CLIENTS.filter((c) => c.health !== 'green');
   const lines = risky.map((c) => {
     const dot = c.health === 'red' ? '🔴' : '🟠';
-    return `${dot} **${c.name}** — ${c.healthReason}`;
+    return `${dot} **${c.name}**: ${c.healthReason}`;
   });
   return {
     reply: `${risky.length} client${risky.length === 1 ? '' : 's'} off green:\n\n${lines.join('\n')}`,
@@ -192,7 +192,7 @@ function newLeadsSummary() {
   const leads = CLIENTS.filter((c) => c.stage === 'new-lead');
   if (leads.length === 0) return { reply: 'No new leads currently open.', citations: [] };
   return {
-    reply: `${leads.length} new lead${leads.length === 1 ? '' : 's'}:\n\n` + leads.map((c) => `• **${c.name}** — ${c.healthReason}\n  Owner: ${c.owner} · ${lastTouchLabel(c)}`).join('\n'),
+    reply: `${leads.length} new lead${leads.length === 1 ? '' : 's'}:\n\n` + leads.map((c) => `• **${c.name}**: ${c.healthReason}\n  Owner: ${c.owner} · ${lastTouchLabel(c)}`).join('\n'),
     citations: leads.map((c) => ({ label: c.name, href: `#/hank/clients/${c.id}?client=${c.id}` })),
   };
 }
@@ -200,7 +200,7 @@ function newLeadsSummary() {
 function opportunitiesSummary() {
   const opens = CLIENTS.flatMap((c) => c.opportunities.filter((o) => o.status !== 'Closed').map((o) => ({ ...o, clientName: c.name, clientId: c.id })));
   const total = opens.reduce((acc, o) => acc + (o.expectedRevenue || 0), 0);
-  const lines = opens.map((o) => `• **${o.clientName}** — ${o.name} (${o.type}) · $${(o.expectedRevenue || 0).toLocaleString()} · ${o.status}`);
+  const lines = opens.map((o) => `• **${o.clientName}**: ${o.name} (${o.type}) · $${(o.expectedRevenue || 0).toLocaleString()} · ${o.status}`);
   return {
     reply: `**${opens.length} open opportunities** · estimated pipeline ≈ **$${Math.round(total / 1000)}K**\n\n${lines.join('\n')}`,
     citations: opens.slice(0, 4).map((o) => ({ label: `${o.clientName} opps`, href: `#/hank/clients/${o.clientId}?tab=opportunities&client=${o.clientId}` })),
@@ -211,7 +211,7 @@ function stagesSummary() {
   return {
     reply: STAGES.filter((s) => s.id !== 'churned').map((s, i) => {
       const count = CLIENTS.filter((c) => c.stage === s.id).length;
-      return `**${i + 1}. ${s.label}** (${count}) — ${s.description}`;
+      return `**${i + 1}. ${s.label}** (${count}): ${s.description}`;
     }).join('\n\n'),
     citations: [{ label: 'Stages & happy paths', href: '#/hank/stages' }],
   };
@@ -219,7 +219,7 @@ function stagesSummary() {
 
 function stakeholdersFor(c) {
   return {
-    reply: `**${c.name}** stakeholders:\n\n${c.stakeholders.map((s) => `• **${s.name}** — ${s.role}${s.firm ? ' · ' + s.firm : ''}`).join('\n')}`,
+    reply: `**${c.name}** stakeholders:\n\n${c.stakeholders.map((s) => `• **${s.name}**: ${s.role}${s.firm ? ' · ' + s.firm : ''}`).join('\n')}`,
     citations: [{ label: 'Stakeholders tab', href: `#/hank/clients/${c.id}?tab=stakeholders&client=${c.id}` }],
   };
 }
@@ -228,7 +228,7 @@ function overdueTasks(today = new Date('2026-05-12')) {
   const overdue = TASKS.filter((t) => t.status !== 'Done' && t.due && new Date(t.due) < today);
   if (overdue.length === 0) return { reply: 'Nothing overdue. Everything else is in flight.', citations: [] };
   return {
-    reply: `${overdue.length} task${overdue.length === 1 ? '' : 's'} overdue:\n\n` + overdue.map((t) => `• **${t.title}** (${t.id}) — owner ${t.owner} · due ${t.due} · ${t.status}`).join('\n'),
+    reply: `${overdue.length} task${overdue.length === 1 ? '' : 's'} overdue:\n\n` + overdue.map((t) => `• **${t.title}** (${t.id}): owner ${t.owner} · due ${t.due} · ${t.status}`).join('\n'),
     citations: overdue.slice(0, 4).map((t) => ({ label: t.id, href: `#/foreman/tasks/${t.id}` })),
   };
 }
@@ -244,7 +244,7 @@ function slippedThisWeek() {
   }).concat(TASKS.filter((t) => t.labels.includes('overdue')));
   const unique = Array.from(new Map(slipped.map((t) => [t.id, t])).values());
   return {
-    reply: `${unique.length} item${unique.length === 1 ? '' : 's'} slipped:\n\n` + unique.map((t) => `• **${t.title}** (${t.id}) — ${t.status} · owner ${t.owner}`).join('\n'),
+    reply: `${unique.length} item${unique.length === 1 ? '' : 's'} slipped:\n\n` + unique.map((t) => `• **${t.title}** (${t.id}): ${t.status} · owner ${t.owner}`).join('\n'),
     citations: unique.slice(0, 4).map((t) => ({ label: t.id, href: `#/foreman/tasks/${t.id}` })),
   };
 }
@@ -264,7 +264,7 @@ function ownerWorkloadSummary() {
   open.forEach((t) => { counts[t.owner] = (counts[t.owner] || 0) + 1; });
   const ranked = Object.entries(counts).sort(([, a], [, b]) => b - a);
   return {
-    reply: `Open task counts by owner:\n\n${ranked.map(([o, n]) => `• **${o}** — ${n}`).join('\n')}`,
+    reply: `Open task counts by owner:\n\n${ranked.map(([o, n]) => `• **${o}**: ${n}`).join('\n')}`,
     citations: [{ label: 'All tasks', href: '#/foreman/tasks' }],
   };
 }
@@ -274,7 +274,7 @@ function upcomingMeetings() {
   const upcoming = MEETINGS.filter((m) => new Date(m.date) >= today).sort((a, b) => a.date < b.date ? -1 : 1);
   if (upcoming.length === 0) return { reply: 'Nothing scheduled.', citations: [] };
   return {
-    reply: `${upcoming.length} upcoming meeting${upcoming.length === 1 ? '' : 's'}:\n\n` + upcoming.map((m) => `• **${m.title}** — ${m.date} ${m.time || ''} · status ${m.status}`).join('\n'),
+    reply: `${upcoming.length} upcoming meeting${upcoming.length === 1 ? '' : 's'}:\n\n` + upcoming.map((m) => `• **${m.title}**: ${m.date} ${m.time || ''} · status ${m.status}`).join('\n'),
     citations: upcoming.slice(0, 4).map((m) => ({ label: m.title, href: `#/foreman/meetings/${m.id}` })),
   };
 }
@@ -284,7 +284,7 @@ function prepCadence() {
     const c = clientById(p.clientId);
     const flag = p.milestones.some((m) => m.status === 'Slipped') ? '🔴' : p.milestones.some((m) => m.status === 'At Risk') ? '🟠' : '🟢';
     const next = p.milestones.find((m) => m.status === 'On Track' || m.status === 'Upcoming' || m.status === 'At Risk' || m.status === 'Slipped');
-    return `${flag} **${c.name}** — next: ${next ? next.name + ' (' + next.status + ')' : '—'}`;
+    return `${flag} **${c.name}**, next: ${next ? next.name + ' (' + next.status + ')' : 'none'}`;
   });
   return {
     reply: `Prep cadence across engagements:\n\n${lines.join('\n')}`,
@@ -298,7 +298,7 @@ function rundownSummary() {
   const amber = r.rows.filter((x) => x.status === 'amber').length;
   const red = r.rows.filter((x) => x.status === 'red').length;
   return {
-    reply: `**Monday rundown**: 🟢 ${green} on track · 🟠 ${amber} at risk · 🔴 ${red} critical.\n\n**Top risks:**\n${r.topRisks.map((tr) => `• **${tr.risk}** — ${tr.action}`).join('\n')}`,
+    reply: `**Monday rundown**: 🟢 ${green} on track · 🟠 ${amber} at risk · 🔴 ${red} critical.\n\n**Top risks:**\n${r.topRisks.map((tr) => `• **${tr.risk}**: ${tr.action}`).join('\n')}`,
     citations: [{ label: 'Monday rundown', href: '#/foreman/rundown' }, ...r.topRisks.map((tr) => ({ label: clientById(tr.clientId).name, href: `#/hank/clients/${tr.clientId}?client=${tr.clientId}` }))],
   };
 }
@@ -307,7 +307,7 @@ function escalatedSummary() {
   const escalated = TICKETS.filter((t) => t.status === 'Escalated' || t.status === 'Human takeover');
   if (escalated.length === 0) return { reply: 'No tickets escalated right now.', citations: [] };
   return {
-    reply: `${escalated.length} ticket${escalated.length === 1 ? '' : 's'} need a human:\n\n` + escalated.map((t) => `• **${t.id}** — ${t.subject}\n  Assignee: ${t.assignee} · ${t.slaTimer} · sentiment ${t.sentiment}`).join('\n'),
+    reply: `${escalated.length} ticket${escalated.length === 1 ? '' : 's'} need a human:\n\n` + escalated.map((t) => `• **${t.id}**: ${t.subject}\n  Assignee: ${t.assignee} · ${t.slaTimer} · sentiment ${t.sentiment}`).join('\n'),
     citations: escalated.map((t) => ({ label: t.id, href: `#/sam/tickets/${t.id}` })),
   };
 }
@@ -321,7 +321,7 @@ function agedTickets(hours = 24) {
   });
   if (aged.length === 0) return { reply: `No tickets older than ${hours}h.`, citations: [] };
   return {
-    reply: `${aged.length} ticket${aged.length === 1 ? '' : 's'} aged ≥ ${hours}h:\n\n` + aged.map((t) => `• **${t.id}** — ${t.subject} · ${t.age} · ${t.status}`).join('\n'),
+    reply: `${aged.length} ticket${aged.length === 1 ? '' : 's'} aged ≥ ${hours}h:\n\n` + aged.map((t) => `• **${t.id}**: ${t.subject} · ${t.age} · ${t.status}`).join('\n'),
     citations: aged.slice(0, 4).map((t) => ({ label: t.id, href: `#/sam/tickets/${t.id}` })),
   };
 }
@@ -329,7 +329,7 @@ function agedTickets(hours = 24) {
 function containmentSummary() {
   const p = PERFORMANCE;
   return {
-    reply: `**${p.monthLabel}**\n\n• **Containment** — ${Math.round(p.containmentRate * 100)}% (${p.containmentRateTrend})\n• **CSAT** — ${p.csat} / 5 (${p.csatTrend})\n• **Volume** — ${p.volumeByPersona.reduce((a, b) => a + b.count, 0)} conversations\n\n**Top escalation reasons:**\n${p.escalationsByReason.slice(0, 3).map((r) => `• ${r.reason} — ${r.count}`).join('\n')}`,
+    reply: `**${p.monthLabel}**\n\n• **Containment**: ${Math.round(p.containmentRate * 100)}% (${p.containmentRateTrend})\n• **CSAT**: ${p.csat} / 5 (${p.csatTrend})\n• **Volume**: ${p.volumeByPersona.reduce((a, b) => a + b.count, 0)} conversations\n\n**Top escalation reasons:**\n${p.escalationsByReason.slice(0, 3).map((r) => `• ${r.reason}: ${r.count}`).join('\n')}`,
     citations: [{ label: 'Performance report', href: '#/sam/report' }],
   };
 }
@@ -338,7 +338,7 @@ function kbConflictsSummary() {
   const conflicts = KB_ARTICLES.filter((a) => a.hasConflict);
   if (conflicts.length === 0) return { reply: 'No KB conflicts open.', citations: [] };
   return {
-    reply: `${conflicts.length} KB article${conflicts.length === 1 ? '' : 's'} with conflicts:\n\n` + conflicts.map((a) => `• **${a.title}** (v${a.version}) — ${a.conflictNote}\n  Owner: ${a.editorialOwner}`).join('\n'),
+    reply: `${conflicts.length} KB article${conflicts.length === 1 ? '' : 's'} with conflicts:\n\n` + conflicts.map((a) => `• **${a.title}** (v${a.version}): ${a.conflictNote}\n  Owner: ${a.editorialOwner}`).join('\n'),
     citations: [{ label: 'Knowledge base', href: '#/sam/kb' }],
   };
 }
@@ -347,7 +347,7 @@ function ticketsByClient(c) {
   const tt = TICKETS.filter((t) => t.clientId === c.id);
   if (tt.length === 0) return { reply: `No tickets logged for **${c.name}**.`, citations: [] };
   return {
-    reply: `**${c.name}** has ${tt.length} ticket${tt.length === 1 ? '' : 's'}:\n\n` + tt.map((t) => `• **${t.id}** — ${t.subject} · ${t.status}`).join('\n'),
+    reply: `**${c.name}** has ${tt.length} ticket${tt.length === 1 ? '' : 's'}:\n\n` + tt.map((t) => `• **${t.id}**: ${t.subject} · ${t.status}`).join('\n'),
     citations: tt.map((t) => ({ label: t.id, href: `#/sam/tickets/${t.id}?client=${c.id}` })),
   };
 }
@@ -356,7 +356,7 @@ function sentimentSummary() {
   const counts = { positive: 0, neutral: 0, frustrated: 0 };
   TICKETS.forEach((t) => { counts[t.sentiment] = (counts[t.sentiment] || 0) + 1; });
   return {
-    reply: `Sentiment across ${TICKETS.length} tickets:\n\n• 🙂 Positive — ${counts.positive}\n• 😐 Neutral — ${counts.neutral}\n• 😟 Frustrated — ${counts.frustrated}`,
+    reply: `Sentiment across ${TICKETS.length} tickets:\n\n• 🙂 Positive: ${counts.positive}\n• 😐 Neutral: ${counts.neutral}\n• 😟 Frustrated: ${counts.frustrated}`,
     citations: [{ label: 'All tickets', href: '#/sam/tickets' }],
   };
 }
@@ -393,7 +393,7 @@ const HANK_INTENTS = [
       const c = findClientByName(ctx.text) || (ctx.followingClient && clientById(ctx.followingClient));
       if (!c) return null;
       return {
-        reply: `**${c.name}** — next step: ${c.nextStep}`,
+        reply: `**${c.name}**, next step: ${c.nextStep}`,
         citations: [{ label: `Client record · ${c.name}`, href: `#/hank/clients/${c.id}?client=${c.id}` }],
       };
     },
@@ -453,7 +453,7 @@ export function matchIntent(app, text, context = {}) {
     if (m) {
       const c = m.clientId ? clientById(m.clientId) : null;
       return {
-        reply: `**${m.title}** (${m.id}) — ${m.type} on ${m.date} ${m.time || ''}.\n\nStatus: **${m.status}**\nAttendees: ${m.attendees.join(', ')}\n\n${m.summaryLetter ? 'Summary letter: ' + (m.summaryLetter.sent ? 'sent ' + m.summaryLetter.sent : 'drafted ' + m.summaryLetter.drafted) : 'No letter yet.'}`,
+        reply: `**${m.title}** (${m.id}): ${m.type} on ${m.date} ${m.time || ''}.\n\nStatus: **${m.status}**\nAttendees: ${m.attendees.join(', ')}\n\n${m.summaryLetter ? 'Summary letter: ' + (m.summaryLetter.sent ? 'sent ' + m.summaryLetter.sent : 'drafted ' + m.summaryLetter.drafted) : 'No letter yet.'}`,
         citations: [
           { label: `Meeting · ${m.id}`, href: `#/foreman/meetings/${m.id}${c ? '?client=' + c.id : ''}` },
           ...(c ? [{ label: `Client · ${c.name}`, href: `#/hank/clients/${c.id}?client=${c.id}` }] : []),
@@ -461,7 +461,7 @@ export function matchIntent(app, text, context = {}) {
       };
     }
     // owner lookup
-    const owners = ['Tom Sr.', 'Tom Jr.', 'Jen', 'Marcus', 'Matt', 'Pat', 'Diane'];
+    const owners = ['Tom Sr.', 'Tom Jr.', 'Jess', 'Marcus', 'Matt', 'Pat', 'Diane'];
     for (const o of owners) {
       if (lc(text).includes(lc(o.split(' ')[0])) && (lc(text).includes('task') || lc(text).includes('plate') || lc(text).includes('owns'))) {
         return tasksByOwner(o);

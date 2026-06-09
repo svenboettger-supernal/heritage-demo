@@ -10,7 +10,7 @@ export const DAILY_CAPACITY = 8;
 export const TASKS = [
   {
     id: 'T-2041',
-    title: 'Confirm IR3 attendance — Koenigsberg · May 22',
+    title: 'Confirm IR3 attendance · Koenigsberg · May 22',
     owner: 'Tom Sr.',
     due: '2026-05-15',
     estHours: 1,
@@ -30,7 +30,7 @@ export const TASKS = [
     dependencies: [],
     comments: [
       { author: 'Tom Sr.', date: '2026-05-09', body: 'Craig + Yvonne confirmed. Keith pending.' },
-      { author: 'Tom Jr.', date: '2026-05-10', body: 'I can text Keith — already mid-thread on the Nevada trust draft.' },
+      { author: 'Tom Jr.', date: '2026-05-10', body: 'I can text Keith, already mid-thread on the Nevada trust draft.' },
     ],
     activity: [
       { date: '2026-05-08', event: 'Task created from IR2 Meeting Letter' },
@@ -41,8 +41,8 @@ export const TASKS = [
   },
   {
     id: 'T-2042',
-    title: 'Jake Koenigsberg life insurance — finalize underwriting packet',
-    owner: 'Jen',
+    title: 'Jake Koenigsberg life insurance · finalize underwriting packet',
+    owner: 'Jess',
     due: '2026-05-18',
     estHours: 4,
     status: 'In Progress',
@@ -59,7 +59,7 @@ export const TASKS = [
   },
   {
     id: 'T-2043',
-    title: 'Update Yvonne POC list — CC on all Koenigsberg accountant correspondence',
+    title: 'Update Yvonne POC list · CC on all Koenigsberg accountant correspondence',
     owner: 'Matt',
     due: '2026-05-13',
     estHours: 0.5,
@@ -77,7 +77,7 @@ export const TASKS = [
   },
   {
     id: 'T-2044',
-    title: 'Tom Sr. follow-up call — Chris Giamo (Haugland)',
+    title: 'Tom Sr. follow-up call · Chris Giamo (Haugland)',
     owner: 'Tom Sr.',
     due: '2026-05-14',
     estHours: 2,
@@ -105,7 +105,7 @@ export const TASKS = [
   },
   {
     id: 'T-2045',
-    title: 'Q1 Renewal Letter — Haugland (still drafting)',
+    title: 'Q1 Renewal Letter · Haugland (still drafting)',
     owner: 'Tom Sr.',
     due: '2026-04-30',
     estHours: 3,
@@ -125,7 +125,7 @@ export const TASKS = [
   },
   {
     id: 'T-2046',
-    title: 'Haugland Phase II Letter — finalize after Giamo call',
+    title: 'Haugland Phase II Letter · finalize after Giamo call',
     owner: 'Tom Sr.',
     due: '2026-04-15',
     estHours: 2,
@@ -143,8 +143,8 @@ export const TASKS = [
   },
   {
     id: 'T-2047',
-    title: 'Mills brothers — confirm IRA beneficiary at NEPWM',
-    owner: 'Jen',
+    title: 'Mills brothers · confirm IRA beneficiary at NEPWM',
+    owner: 'Jess',
     due: '2026-05-13',
     estHours: 1.5,
     status: 'To Do',
@@ -152,7 +152,7 @@ export const TASKS = [
     labels: ['scheduling', 'mills', 'nepwm'],
     clientId: 'whitcombe',
     engagement: 'Mills · Phase II (3 brothers)',
-    description: 'Health will turn red if Vic IRA beneficiary not confirmed this week. Diane chasing carrier; Jen confirms with Jeff Filone at NEPWM.',
+    description: 'Health will turn red if Vic IRA beneficiary not confirmed this week. Diane chasing carrier; Jess confirms with Jeff Filone at NEPWM.',
     subtasks: [
       { title: 'Confirm with Jeff Filone (NEPWM)', done: false },
       { title: 'Confirm carrier received executed forms', done: false },
@@ -166,7 +166,7 @@ export const TASKS = [
   },
   {
     id: 'T-2048',
-    title: 'Mills — chase Goodman Marks on Vic valuation',
+    title: 'Mills · chase Goodman Marks on Vic valuation',
     owner: 'Pat',
     due: '2026-05-12',
     estHours: 1,
@@ -175,18 +175,18 @@ export const TASKS = [
     labels: ['external', 'mills', 'valuations'],
     clientId: 'whitcombe',
     engagement: 'Mills · Phase II (3 brothers)',
-    description: 'Two follow-ups already sent. Hank drafted a third — needs Jen approval before send.',
+    description: 'Two follow-ups already sent. Hank drafted a third. Needs Jess approval before send.',
     subtasks: [],
     dependencies: [],
     comments: [
-      { author: 'Jen', date: '2026-05-09', body: 'Will approve the Hank draft this morning.' },
+      { author: 'Jess', date: '2026-05-09', body: 'Will approve the Hank draft this morning.' },
     ],
     activity: [{ date: '2026-04-28', event: 'Task created' }],
     attachments: [],
   },
   {
     id: 'T-2049',
-    title: 'Garten — review MH Flow Diagram before sharing with Alan',
+    title: 'Garten · review MH Flow Diagram before sharing with Alan',
     owner: 'Tom Jr.',
     due: '2026-05-18',
     estHours: 3,
@@ -195,7 +195,7 @@ export const TASKS = [
     labels: ['review', 'garten'],
     clientId: 'aldermount',
     engagement: 'Garten · Phase II',
-    description: 'MH delivers Flow Diagram week of May 18. Tom Jr. reviews; Jen sends to Alan after sign-off.',
+    description: 'MH delivers Flow Diagram week of May 18. Tom Jr. reviews; Jess sends to Alan after sign-off.',
     subtasks: [],
     dependencies: ['T-2050'],
     comments: [],
@@ -204,8 +204,8 @@ export const TASKS = [
   },
   {
     id: 'T-2050',
-    title: 'Garten — chase Larry Glick on retainer letter status',
-    owner: 'Jen',
+    title: 'Garten · chase Larry Glick on retainer letter status',
+    owner: 'Jess',
     due: '2026-05-14',
     estHours: 1,
     status: 'In Progress',
@@ -213,7 +213,7 @@ export const TASKS = [
     labels: ['external', 'garten', 'glick'],
     clientId: 'aldermount',
     engagement: 'Garten · Phase II',
-    description: 'Larry Glick is the referral partner AND a Heritage P2 client. Coordinate messaging carefully — Jen owns both threads.',
+    description: 'Larry Glick is the referral partner AND a Heritage P2 client. Coordinate messaging carefully. Jess owns both threads.',
     subtasks: [],
     dependencies: [],
     comments: [],
@@ -222,8 +222,8 @@ export const TASKS = [
   },
   {
     id: 'T-2051',
-    title: 'Castellana approach — schedule Tom Sr. intro call',
-    owner: 'Jen',
+    title: 'Castellana approach · schedule Tom Sr. intro call',
+    owner: 'Jess',
     due: '2026-05-12',
     estHours: 0.5,
     status: 'To Do',
@@ -231,16 +231,16 @@ export const TASKS = [
     labels: ['approach', 'castellana', 'delprete'],
     clientId: 'carrington',
     engagement: 'Castellana · new lead (DelPrete & Giunta referral)',
-    description: 'Tom Sr. to call Peter Castellana personally. Hank generated an outreach note in Heritage voice — needs Jen approval.',
+    description: 'Tom Sr. to call Peter Castellana personally. Hank generated an outreach note in Heritage voice. Needs Jess approval.',
     subtasks: [],
     dependencies: [],
     comments: [],
     activity: [{ date: '2026-05-10', event: 'Draft generated by Hank' }],
-    attachments: ['Castellana — Hank intro draft v1.docx'],
+    attachments: ['Castellana intro draft v1 (Hank).docx'],
   },
   {
     id: 'T-2052',
-    title: 'Penson — chase Kearney & Raffanelli on medical disclosures',
+    title: 'Penson · chase Kearney & Raffanelli on medical disclosures',
     owner: 'Marcus',
     due: '2026-05-22',
     estHours: 1,
@@ -262,7 +262,7 @@ export const TASKS = [
   },
   {
     id: 'T-2053',
-    title: 'Chrinian Board Meeting prep — May 21',
+    title: 'Chrinian Board Meeting prep · May 21',
     owner: 'Matt',
     due: '2026-05-19',
     estHours: 4,
@@ -280,7 +280,7 @@ export const TASKS = [
   },
   {
     id: 'T-2054',
-    title: 'Dana — send updated Asset Sheet to Fred + Gary Cassiello',
+    title: 'Dana · send updated Asset Sheet to Fred + Gary Cassiello',
     owner: 'Marcus',
     due: '2026-05-13',
     estHours: 1.5,
@@ -298,7 +298,7 @@ export const TASKS = [
   },
   {
     id: 'T-2055',
-    title: 'Refresh Q2 Asset Sheets — all active clients',
+    title: 'Refresh Q2 Asset Sheets · all active clients',
     owner: 'Diane',
     due: '2026-06-15',
     estHours: 6,
@@ -320,7 +320,7 @@ export const TASKS = [
   },
   {
     id: 'T-2056',
-    title: 'AI Platform — confirm Drop Box uploads for May batch',
+    title: 'AI Platform · confirm Drop Box uploads for May batch',
     owner: 'Diane',
     due: '2026-05-20',
     estHours: 2,
@@ -356,7 +356,7 @@ export const TASKS = [
   },
   {
     id: 'T-2058',
-    title: 'Update Heritage voice guide — banned phrases v3',
+    title: 'Update Heritage voice guide · banned phrases v3',
     owner: 'Tom Sr.',
     due: '2026-05-25',
     estHours: 2,
@@ -452,7 +452,7 @@ export const TASKS = [
   {
     id: 'T-2063',
     title: 'Partner dinner · confirm venue and June 4 invite list',
-    owner: 'Jen',
+    owner: 'Jess',
     due: '2026-05-20',
     estHours: 2,
     status: 'In Progress',
@@ -566,7 +566,7 @@ export const MEETINGS = [
     ],
     attendees: ['Tom Sr.', 'Craig Koenigsberg', 'Yvonne Hernandez'],
     transcriptExcerpt:
-      "CK: We need the Jake life insurance decision before year-end.\nYH: I'll coordinate the underwriting packet with Heritage.\nTS: Foreman will track. IR3 May 22 — Keith joins for the Nevada angle.",
+      "CK: We need the Jake life insurance decision before year-end.\nYH: I'll coordinate the underwriting packet with Heritage.\nTS: Foreman will track. IR3 May 22, Keith joins for the Nevada angle.",
     summaryLetter: {
       drafted: '2026-05-10',
       approver: 'Tom Sr.',
@@ -611,7 +611,7 @@ export const MEETINGS = [
       { name: 'Team file review', date: '2026-05-08', status: 'Done' },
       { name: "Tom's file review", date: '2026-05-15', status: 'Scheduled' },
     ],
-    attendees: ['Jen', 'Vic Mills', 'Jeff Filone (NEPWM)'],
+    attendees: ['Jess', 'Vic Mills', 'Jeff Filone (NEPWM)'],
     transcriptExcerpt: '',
     summaryLetter: null,
     actionItems: [],
@@ -647,14 +647,14 @@ export const MEETINGS = [
       { name: 'Team file review', date: '2026-02-26', status: 'Done' },
       { name: "Tom's file review", date: '2026-03-02', status: 'Done' },
     ],
-    attendees: ['Tom Sr.', 'Tom Jr.', 'Jen'],
+    attendees: ['Tom Sr.', 'Tom Jr.', 'Jess'],
     transcriptExcerpt:
-      "TS: Q2 cycle starts now. IR1 done, IR2 May 10, IR3 May 22.\nJen: Jake Koenigsberg insurance is the priority deliverable — coordinate with Yvonne.",
+      "TS: Q2 cycle starts now. IR1 done, IR2 May 10, IR3 May 22.\nJess: Jake Koenigsberg insurance is the priority item. Coordinate with Yvonne.",
     summaryLetter: {
       drafted: '2026-03-04',
       approver: 'Tom Sr.',
       sent: '2026-03-04',
-      preview: 'PIR confirms Q2 cycle plan: IR1 March 18, IR2 May 10, IR3 May 22. Jake Koenigsberg life insurance is the priority deliverable.',
+      preview: 'PIR confirms Q2 cycle plan: IR1 March 18, IR2 May 10, IR3 May 22. Jake Koenigsberg life insurance is the priority item.',
     },
     actionItems: [],
   },
@@ -689,9 +689,9 @@ export const MEETINGS = [
       { name: 'Team file review', date: '2026-02-23', status: 'Done' },
       { name: "Tom's file review", date: '2026-02-26', status: 'Done' },
     ],
-    attendees: ['Tom Sr.', 'Jen', 'Alan Garten', 'Larry Glick'],
+    attendees: ['Tom Sr.', 'Jess', 'Alan Garten', 'Larry Glick'],
     transcriptExcerpt:
-      "AG: I want the Phase II package finalized before fall.\nLG: I'll stay close to this — Alan is a long-standing relationship.\nTS: Heritage will deliver the Flow Diagram via MH within 6 weeks.",
+      "AG: I want the Phase II package finalized before fall.\nLG: I'll stay close to this, Alan is a long-standing relationship.\nTS: Heritage will deliver the Flow Diagram via MH within 6 weeks.",
     summaryLetter: {
       drafted: '2026-03-02',
       approver: 'Tom Sr.',
@@ -733,7 +733,7 @@ export const SCHEDULE_CHANGES = [
     detail: 'Shortened from 90 minutes to 60 minutes, still May 19, 3:30 PM',
     changedBy: 'Jeff Filone (NEPWM)',
     detected: 'Today · 8:12 AM',
-    impact: "Agenda was built for 90 minutes. Trim it before Jen's prep on May 15.",
+    impact: "Agenda was built for 90 minutes. Trim it before Jess's prep on May 15.",
     review: null,
   },
   {
@@ -858,7 +858,7 @@ export const MONDAY_RUNDOWN = {
     { clientId: 'saint-croix', status: 'green', reason: 'Chrinian Board Meeting on track for May 21.' },
     { clientId: 'aldermount', status: 'green', reason: 'Garten Phase II in motion. MH Flow Diagram delivers May 18.' },
     { clientId: 'helmsley', status: 'green', reason: 'Penson IR1 prep on track for May 24.' },
-    { clientId: 'carrington', status: 'green', reason: 'Castellana approach within first-touch SLA — Tom Sr. owns call.' },
+    { clientId: 'carrington', status: 'green', reason: 'Castellana approach within first-touch SLA. Tom Sr. owns call.' },
     { clientId: 'whitcombe', status: 'amber', reason: 'Mills Vic valuation pending at Goodman Marks. IRA beneficiary unblock at NEPWM.' },
     { clientId: 'devonshire', status: 'amber', reason: 'Dana valuations partial. Awaiting Goodman Marks final.' },
     { clientId: 'brooks-halley', status: 'red', reason: 'Haugland stuck since Aug 2025 IR1. Tom Sr. follow-up with Giamo this week.' },
@@ -866,6 +866,6 @@ export const MONDAY_RUNDOWN = {
   topRisks: [
     { risk: 'Haugland stuck in Phase I drift', clientId: 'brooks-halley', action: 'Tom Sr. follow-up with Chris Giamo by May 14.' },
     { risk: 'Mills IRA beneficiary missing', clientId: 'whitcombe', action: 'NEPWM/Filone to confirm by May 13.' },
-    { risk: 'Dana valuations partial', clientId: 'devonshire', action: 'Goodman Marks chase by Pat — by May 14.' },
+    { risk: 'Dana valuations partial', clientId: 'devonshire', action: 'Goodman Marks chase by Pat, due May 14.' },
   ],
 };
