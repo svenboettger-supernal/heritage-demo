@@ -1,6 +1,6 @@
 // Heritage demo · App entry, router, state, view renderers.
 import { CLIENTS, STAGES, CUSTOMER_TYPES, MORNING_DIGEST, clientById, stageById } from './data/clients.js';
-import { TASKS, MEETINGS, PREP_PROTOCOL, MONDAY_RUNDOWN, STATUSES, PRIORITIES, tasksForClient, taskById, meetingById } from './data/work.js';
+import { TASKS, MEETINGS, PREP_PROTOCOL, MONDAY_RUNDOWN, STATUSES, PRIORITIES, DAILY_CAPACITY, tasksForClient, taskById, meetingById } from './data/work.js';
 import { TICKETS, KB_ARTICLES, SAVED_VIEWS, PERSONAS, PERFORMANCE, ticketsForClient, ticketById } from './data/support.js';
 import { BOTS, getHistory, appendMessage, resetHistory, matchIntent, suggestedReplies } from './chat.js';
 
@@ -219,6 +219,28 @@ function fmtMoney(n) {
   if (n >= 1000000) return '$' + (n / 1000000).toFixed(1).replace('.0', '') + 'M';
   if (n >= 1000) return '$' + Math.round(n / 1000) + 'K';
   return '$' + n;
+}
+
+function fmtHours(n) {
+  if (n === null || n === undefined) return '—';
+  return `${n}h`;
+}
+
+function weekdayShort(iso) {
+  try { return new Date(iso).toLocaleDateString('en-US', { weekday: 'short' }); } catch (e) { return ''; }
+}
+
+// Total estimated hours a person has due on a given date, across ALL tasks
+// (independent of active filters). Done tasks do not count against capacity.
+function ownerDayLoad(owner, dateIso) {
+  if (!owner || !dateIso) return 0;
+  return TASKS
+    .filter((t) => t.owner === owner && t.due === dateIso && t.status !== 'Done')
+    .reduce((sum, t) => sum + (t.estHours || 0), 0);
+}
+
+function isOverbooked(t) {
+  return Boolean(t.due) && t.status !== 'Done' && ownerDayLoad(t.owner, t.due) > DAILY_CAPACITY;
 }
 
 function priorityBadge(p) {
@@ -826,9 +848,9 @@ function renderForemanTasks() {
         <h1>Tasks</h1>
         <div class="page-actions">
           <div class="segmented">
-            ${['list', 'board', 'calendar'].map((v) => `<button class="segmented-item" data-active="${view === v}" data-action="set-view" data-view="${v}">${esc(v[0].toUpperCase() + v.slice(1))}</button>`).join('')}
+            ${['list', 'board', 'calendar', 'capacity'].map((v) => `<button class="segmented-item" data-active="${view === v}" data-action="set-view" data-view="${v}">${esc(v[0].toUpperCase() + v.slice(1))}</button>`).join('')}
           </div>
-          <button class="btn btn--primary btn--sm">${svg('plus')} New task</button>
+          <button class="btn btn--primary btn--sm" data-action="new-task">${svg('plus')} New task</button>
         </div>
       </div>
       <p class="page-sub">${tasks.length} task${tasks.length === 1 ? '' : 's'} · Heritage no-dates standard enforced. ${followingClient ? `Filtered by <a href="#" data-action="unfollow">${esc(clientById(followingClient)?.name || '')}</a>.` : 'Across every engagement.'}</p>
@@ -848,7 +870,7 @@ function renderForemanTasks() {
       ${owners.map((o) => `<button class="filter-chip" data-action="filter" data-filter="owner" data-value="${o}" data-active="${owner === o}">${esc(o)}</button>`).join('')}
     </div>
 
-    ${view === 'list' ? renderForemanTasksList(tasks) : view === 'board' ? renderForemanTasksBoard(tasks) : renderForemanTasksCalendar(tasks)}
+    ${view === 'list' ? renderForemanTasksList(tasks) : view === 'board' ? renderForemanTasksBoard(tasks) : view === 'capacity' ? renderForemanTasksCapacity(tasks) : renderForemanTasksCalendar(tasks)}
   `;
 }
 
@@ -864,6 +886,7 @@ function renderForemanTasksList(tasks) {
             <th>Engagement</th>
             <th>Owner</th>
             <th>Due</th>
+            <th>Est.</th>
             <th>Status</th>
             <th>Priority</th>
             <th>Labels</th>
@@ -877,6 +900,7 @@ function renderForemanTasksList(tasks) {
               <td class="muted tiny">${esc(t.engagement)}</td>
               <td>${esc(t.owner)}</td>
               <td class="${overdueClass(t)} muted">${shortDate(t.due)}</td>
+              <td><span class="col-mono tiny muted">${fmtHours(t.estHours)}</span>${isOverbooked(t) ? ` <span class="badge badge--error" title="${esc(t.owner)} has ${ownerDayLoad(t.owner, t.due)}h due ${shortDate(t.due)}, over the ${DAILY_CAPACITY}h day">${ownerDayLoad(t.owner, t.due)}h day</span>` : ''}</td>
               <td>${statusBadge(t.status)}</td>
               <td>${priorityBadge(t.priority)}</td>
               <td>${t.labels.slice(0, 2).map((l) => `<span class="badge">${esc(l)}</span>`).join(' ')}${t.labels.length > 2 ? ' <span class="tiny muted">+' + (t.labels.length - 2) + '</span>' : ''}</td>
@@ -908,12 +932,13 @@ function renderForemanTasksBoard(tasks) {
               <div class="kanban-card-title">${esc(t.title)}</div>
               <div class="kanban-card-meta">
                 ${priorityBadge(t.priority)}
+                ${isOverbooked(t) ? `<span class="badge badge--error" title="${esc(t.owner)} has ${ownerDayLoad(t.owner, t.due)}h due ${shortDate(t.due)}, over the ${DAILY_CAPACITY}h day">Day over</span>` : ''}
                 <span class="muted">${esc(t.id)}</span>
               </div>
               <div class="kanban-card-meta">
                 ${avatarFor(t.owner, 'sm')}
                 <span>${esc(t.owner)}</span>
-                <span class="muted" style="margin-left:auto">${shortDate(t.due)}</span>
+                <span class="muted" style="margin-left:auto">${shortDate(t.due)} · ${fmtHours(t.estHours)}</span>
               </div>
             </div>
           `).join('')}
@@ -949,11 +974,71 @@ function renderForemanTasksCalendar(tasks) {
         const other = d.getMonth() !== month;
         const isToday = iso === '2026-05-12';
         const tt = taskByDate[iso] || [];
+        const booked = tt.filter((t) => t.status !== 'Done').reduce((sum, t) => sum + (t.estHours || 0), 0);
+        const overOwners = Array.from(new Set(tt.map((t) => t.owner))).filter((o) => ownerDayLoad(o, iso) > DAILY_CAPACITY);
         return `
           <div class="calendar-cell" data-other="${other}" data-today="${isToday}">
             <div class="calendar-day">${d.getDate()}</div>
-            ${tt.slice(0, 3).map((t) => `<div class="calendar-task" data-priority="${esc(t.priority)}" data-action="open-task" data-task="${t.id}" title="${esc(t.title)}">${esc(t.title)}</div>`).join('')}
+            ${booked ? `<div class="calendar-hours" data-over="${overOwners.length > 0}" title="${esc(`${booked}h estimated across ${tt.length} task${tt.length === 1 ? '' : 's'}. Daily capacity is ${DAILY_CAPACITY}h per person.`)}">${booked}h${overOwners.length ? ` · ${esc(overOwners.join(', '))} over` : ' booked'}</div>` : ''}
+            ${tt.slice(0, 3).map((t) => `<div class="calendar-task" data-priority="${esc(t.priority)}" data-action="open-task" data-task="${t.id}" title="${esc(t.title)} · ${fmtHours(t.estHours)}">${esc(t.title)}</div>`).join('')}
             ${tt.length > 3 ? `<div class="tiny muted">+${tt.length - 3} more</div>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
+}
+
+function renderForemanTasksCapacity(tasks) {
+  // Coming 10 days from the demo "today" (May 12 to May 21).
+  const start = Date.UTC(2026, 4, 12);
+  const days = [];
+  for (let i = 0; i < 10; i++) days.push(new Date(start + i * 86400000).toISOString().slice(0, 10));
+
+  const active = tasks.filter((t) => t.status !== 'Done' && t.due);
+  const owners = Array.from(new Set(tasks.map((t) => t.owner))).sort();
+  const load = {};
+  for (const t of active) {
+    load[t.owner] = load[t.owner] || {};
+    load[t.owner][t.due] = (load[t.owner][t.due] || 0) + (t.estHours || 0);
+  }
+
+  if (owners.length === 0) return `<div class="card empty"><h3>No matching tasks</h3><p class="muted">Adjust filters to see more.</p></div>`;
+
+  return `
+    <div class="card mb-md">
+      <div class="row" style="gap:12px;justify-content:space-between;flex-wrap:wrap">
+        <div class="card-title">Capacity · ${shortDate(days[0])} to ${shortDate(days[days.length - 1])}</div>
+        <span class="tiny muted">Daily capacity is ${DAILY_CAPACITY}h per person, summed from estimated hours on tasks due that day. A red bar means the day is over. Move due dates to rebalance.</span>
+      </div>
+    </div>
+    <div class="capacity-grid">
+      ${owners.map((o) => {
+        const byDay = load[o] || {};
+        const total = days.reduce((sum, d) => sum + (byDay[d] || 0), 0);
+        const overDays = days.filter((d) => (byDay[d] || 0) > DAILY_CAPACITY);
+        return `
+          <div class="card">
+            <div class="row" style="gap:10px">
+              ${avatarFor(o, 'sm')}
+              <strong>${esc(o)}</strong>
+              ${overDays.length ? `<span class="badge badge--error">Over on ${overDays.map(shortDate).join(', ')}</span>` : `<span class="badge badge--success">Within capacity</span>`}
+              <span class="tiny muted" style="margin-left:auto">${total}h booked</span>
+            </div>
+            <div class="bar-list" style="margin-top:14px">
+              ${days.map((d) => {
+                const h = byDay[d] || 0;
+                const over = h > DAILY_CAPACITY;
+                const pct = Math.min((h / DAILY_CAPACITY) * 100, 100);
+                return `
+                  <div class="bar-row">
+                    <span class="${over ? 'capacity-day--over' : 'muted'}">${weekdayShort(d)} · ${shortDate(d)}</span>
+                    <div class="bar-track">${h ? `<div class="bar-fill" style="width:${pct}%;background:var(--${over ? 'error' : 'action'})"></div>` : ''}</div>
+                    <span class="bar-value ${over ? 'capacity-day--over' : ''}">${h}h/${DAILY_CAPACITY}h</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
           </div>
         `;
       }).join('')}
@@ -1071,11 +1156,13 @@ function renderForemanTaskDetail() {
           <dl class="draft-meta" style="margin-top:12px;margin-bottom:0">
             <dt>Owner</dt><dd>${esc(t.owner)}</dd>
             <dt>Due</dt><dd>${shortDate(t.due)}</dd>
+            <dt>Estimated</dt><dd><span class="hours-edit"><input class="input" type="number" min="0.5" max="12" step="0.5" value="${t.estHours}" data-hours-task="${t.id}" aria-label="Estimated hours"> h</span></dd>
             <dt>Status</dt><dd>${statusBadge(t.status)}</dd>
             <dt>Priority</dt><dd>${priorityBadge(t.priority)}</dd>
             <dt>Engagement</dt><dd>${esc(t.engagement)}</dd>
             ${client ? `<dt>Client</dt><dd>${clientLink(client.id, { follow: true })}</dd>` : ''}
           </dl>
+          ${isOverbooked(t) ? `<div class="capacity-flag"><strong>${esc(t.owner)} is over capacity on ${shortDate(t.due)}.</strong> ${ownerDayLoad(t.owner, t.due)}h booked against an ${DAILY_CAPACITY}h day. <a href="#/foreman/tasks?view=capacity">Open capacity view</a> to rebalance due dates.</div>` : ''}
         </div>
 
         <div class="card">
@@ -1848,6 +1935,87 @@ function closeDialog() {
   root.setAttribute('aria-hidden', 'true');
 }
 
+/* ── New task modal ──────────────────────────────────────── */
+
+function nextTaskId() {
+  const max = TASKS.reduce((m, t) => {
+    const n = parseInt(String(t.id).replace('T-', ''), 10);
+    return isFinite(n) && n > m ? n : m;
+  }, 0);
+  return 'T-' + (max + 1);
+}
+
+function openNewTaskModal() {
+  const owners = Array.from(new Set(TASKS.map((t) => t.owner))).sort();
+  const root = document.getElementById('dialog-root');
+  const dialog = document.getElementById('dialog');
+  root.dataset.open = 'true';
+  root.setAttribute('aria-hidden', 'false');
+  dialog.innerHTML = `
+    <button class="dialog-close" data-dialog-close aria-label="Close">×</button>
+    <div class="page-kicker">New task · Foreman</div>
+    <div class="dialog-title">Create task</div>
+    <div class="dialog-sub">Estimated hours feed the daily capacity check. Foreman flags anyone booked above ${DAILY_CAPACITY}h on a single day.</div>
+
+    <form id="new-task-form">
+      <label class="label"><span>Title</span><input class="input" name="title" required placeholder="e.g. Chase Goodman Marks on Vic valuation"></label>
+      <div class="row" style="gap:12px;align-items:flex-start">
+        <label class="label" style="flex:1"><span>Owner</span>
+          <select class="select" name="owner">${owners.map((o) => `<option value="${esc(o)}">${esc(o)}</option>`).join('')}</select>
+        </label>
+        <label class="label" style="flex:1"><span>Due date</span><input class="input" type="date" name="due" value="2026-05-14" required></label>
+      </div>
+      <div class="row" style="gap:12px;align-items:flex-start">
+        <label class="label" style="flex:1"><span>Priority</span>
+          <select class="select" name="priority">${PRIORITIES.map((p) => `<option value="${esc(p)}"${p === 'Normal' ? ' selected' : ''}>${esc(p)}</option>`).join('')}</select>
+        </label>
+        <label class="label" style="flex:1"><span>Estimated hours</span><input class="input" type="number" name="estHours" min="0.5" max="12" step="0.5" value="1" required></label>
+      </div>
+      <div class="dialog-foot">
+        <button class="btn btn--ghost btn--sm" type="button" data-dialog-close>Cancel</button>
+        <button class="btn btn--primary btn--sm" type="submit">Create task</button>
+      </div>
+    </form>
+  `;
+}
+
+function handleNewTaskSubmit(form) {
+  const fd = new FormData(form);
+  const title = String(fd.get('title') || '').trim();
+  const owner = String(fd.get('owner') || '');
+  const due = String(fd.get('due') || '');
+  const priority = String(fd.get('priority') || 'Normal');
+  const estHours = parseFloat(fd.get('estHours')) || 1;
+  if (!title || !owner || !due) return;
+  const id = nextTaskId();
+  TASKS.push({
+    id,
+    title,
+    owner,
+    due,
+    estHours,
+    status: 'To Do',
+    priority,
+    labels: [],
+    clientId: null,
+    engagement: 'Internal · operations',
+    description: title,
+    subtasks: [],
+    dependencies: [],
+    comments: [],
+    activity: [{ date: '2026-05-12', event: 'Task created' }],
+    attachments: [],
+  });
+  closeDialog();
+  const load = ownerDayLoad(owner, due);
+  if (load > DAILY_CAPACITY) {
+    toast(`${id} created. ${owner} is now at ${load}h on ${shortDate(due)}, over the ${DAILY_CAPACITY}h day.`);
+  } else {
+    toast(`${id} created. ${owner} is at ${load}h of ${DAILY_CAPACITY}h on ${shortDate(due)}.`, 'success');
+  }
+  render();
+}
+
 /* ── Chat widget ─────────────────────────────────────────── */
 
 function renderChatShell() {
@@ -2344,6 +2512,11 @@ function bindEvents() {
       openDraftModal(target);
       return;
     }
+    if (action === 'new-task') {
+      e.preventDefault();
+      openNewTaskModal();
+      return;
+    }
     if (action === 'send-for-approval') {
       e.preventDefault();
       closeDialog();
@@ -2402,6 +2575,32 @@ function bindEvents() {
   // Dialog close
   document.getElementById('dialog-root').addEventListener('click', (e) => {
     if (e.target.matches('[data-dialog-close]')) closeDialog();
+  });
+
+  // New task form (lives inside the dialog)
+  document.addEventListener('submit', (e) => {
+    const form = e.target.closest('#new-task-form');
+    if (!form) return;
+    e.preventDefault();
+    handleNewTaskSubmit(form);
+  });
+
+  // Estimated-hours inline edit on task detail
+  document.addEventListener('change', (e) => {
+    const input = e.target.closest('input[data-hours-task]');
+    if (!input) return;
+    const t = taskById(input.dataset.hoursTask);
+    if (!t) return;
+    const v = parseFloat(input.value);
+    if (!isFinite(v) || v <= 0) { input.value = t.estHours; return; }
+    t.estHours = v;
+    const load = ownerDayLoad(t.owner, t.due);
+    if (t.due && t.status !== 'Done' && load > DAILY_CAPACITY) {
+      toast(`Estimate set to ${v}h. ${t.owner} is now at ${load}h on ${shortDate(t.due)}, over the ${DAILY_CAPACITY}h day.`);
+    } else {
+      toast(`Estimate set to ${v}h for ${t.id}.`, 'success');
+    }
+    render();
   });
 
   // Command palette open + close

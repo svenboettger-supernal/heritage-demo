@@ -2686,3 +2686,53 @@ svg.icon { width: 14px; height: 14px; flex: none; }
 .mt-sm { margin-top: 8px; }
 .mt-md { margin-top: 16px; }
 .mt-lg { margin-top: 24px; }
+
+/* ── Hours & capacity ────────────────────────────────────── */
+
+.calendar-hours {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--fg-muted);
+}
+
+.calendar-hours[data-over="true"] {
+  color: var(--error-fg);
+  background: var(--error-bg);
+  border: 1px solid var(--error);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  align-self: flex-start;
+}
+
+.capacity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.capacity-day--over { color: var(--error-fg); font-weight: 600; }
+
+.hours-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hours-edit .input {
+  width: 72px;
+  height: 28px;
+  padding: 0 8px;
+}
+
+.capacity-flag {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: var(--error-bg);
+  color: var(--error-fg);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.capacity-flag a { color: inherit; font-weight: 600; }
