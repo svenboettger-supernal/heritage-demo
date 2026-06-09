@@ -780,7 +780,7 @@ function renderHankStages() {
       ${STAGES.filter((s) => s.id !== 'churned').map((s, i) => `
         <div class="card">
           <div class="row" style="gap:12px;align-items:flex-start">
-            <div class="stage-step-bullet" style="background:${i === 3 ? 'var(--action)' : 'var(--surface-2)'};color:${i === 3 ? 'var(--action-fg)' : 'var(--fg-muted)'};flex:none">${i + 1}</div>
+            <div class="stage-step-bullet" style="background:${i === 3 ? 'var(--state)' : 'var(--bg-muted)'};color:${i === 3 ? 'var(--action-fg)' : 'var(--fg-muted)'};flex:none">${i + 1}</div>
             <div style="flex:1">
               <h3>${esc(s.label)}</h3>
               <p class="muted tiny" style="margin-top:4px">${esc(s.description)}</p>
@@ -1211,7 +1211,7 @@ function renderForemanTasksCapacity(tasks) {
                 return `
                   <div class="bar-row">
                     <span class="${over ? 'capacity-day--over' : 'muted'}">${weekdayShort(d)} · ${shortDate(d)}</span>
-                    <div class="bar-track">${h ? `<div class="bar-fill" style="width:${pct}%;background:var(--${over ? 'error' : 'action'})"></div>` : ''}</div>
+                    <div class="bar-track">${h ? `<div class="bar-fill" style="width:${pct}%;background:var(--${over ? 'error' : 'viz-0'})"></div>` : ''}</div>
                     <span class="bar-value ${over ? 'capacity-day--over' : ''}">${h}h/${DAILY_CAPACITY}h</span>
                   </div>
                 `;
@@ -1506,7 +1506,7 @@ function renderForemanMeetingDetail() {
         ${m.transcriptExcerpt ? `
           <div class="card">
             <div class="card-title">Transcript excerpt</div>
-            <pre style="margin-top:12px;font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;color:var(--fg);white-space:pre-wrap;background:var(--surface-1);padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-subtle)">${esc(m.transcriptExcerpt)}</pre>
+            <pre style="margin-top:12px;font-family:var(--font-mono);font-size:12px;line-height:1.6;color:var(--fg);white-space:pre-wrap;background:var(--bg-muted);padding:14px;border-radius:var(--radius-md);border:1px solid var(--border-subtle)">${esc(m.transcriptExcerpt)}</pre>
             <button class="btn btn--ghost btn--sm mt-md">View full transcript</button>
           </div>
         ` : ''}
@@ -2091,7 +2091,7 @@ function showCmdAnswer(promptId) {
   cmd.dataset.mode = 'answer';
   ans.innerHTML = `
     <button class="cmd-back" data-action="cmd-back">${svg('back')} Back</button>
-    <h3 style="font-family:'Lora',Georgia,serif;font-size:18px;font-weight:600">${esc(p.prompt)}</h3>
+    <h3 style="font-family:var(--font-display);font-size:18px;font-weight:500">${esc(p.prompt)}</h3>
     <p style="margin-top:10px;line-height:1.6;white-space:pre-wrap">${esc(p.answer)}</p>
     <h4>Sources</h4>
     <div class="flex-wrap">
