@@ -1,6 +1,6 @@
 // Heritage demo · App entry, router, state, view renderers.
 import { CLIENTS, STAGES, CUSTOMER_TYPES, MORNING_DIGEST, clientById, stageById } from './data/clients.js';
-import { TASKS, MEETINGS, MONDAY_RUNDOWN, STATUSES, PRIORITIES, DAILY_CAPACITY, tasksForClient, taskById, meetingById, deriveProjects, projectById } from './data/work.js';
+import { TASKS, MEETINGS, MONDAY_RUNDOWN, STATUSES, PRIORITIES, DAILY_CAPACITY, SCHEDULE_CHANGES, tasksForClient, taskById, meetingById, scheduleChangeById, deriveProjects, projectById } from './data/work.js';
 import { TICKETS, KB_ARTICLES, SAVED_VIEWS, PERSONAS, PERFORMANCE, ticketsForClient, ticketById } from './data/support.js';
 import { BOTS, getHistory, appendMessage, resetHistory, matchIntent, suggestedReplies } from './chat.js';
 
@@ -65,6 +65,7 @@ const APPS = {
       { id: 'rundown', label: 'Monday rundown', icon: 'rundown', route: 'rundown' },
       { id: 'tasks', label: 'Tasks', icon: 'check', route: 'tasks' },
       { id: 'meetings', label: 'Meetings & prep', icon: 'calendar', route: 'meetings' },
+      { id: 'changes', label: 'Schedule changes', icon: 'sync', route: 'changes' },
     ],
   },
   sam: {
@@ -286,6 +287,7 @@ function svg(name) {
     back: '<path d="M11 3L6 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
     pen: '<path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
     warning: '<path d="M8 2L1.5 13.5h13L8 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.9" fill="currentColor"/>',
+    sync: '<path d="M13.5 8a5.5 5.5 0 01-9.6 3.7M2.5 8a5.5 5.5 0 019.6-3.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12.5 1.5v3h-3M3.5 14.5v-3h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
   };
   return `<svg class="icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">${ICONS[name] || ''}</svg>`;
 }
@@ -1364,11 +1366,10 @@ function renderForemanMeetings() {
       <div class="page-head-row">
         <h1>Meetings & prep</h1>
         <div class="page-actions">
-          <button class="btn btn--secondary btn--sm">Connect calendar</button>
-          <button class="btn btn--primary btn--sm">${svg('plus')} Schedule meeting</button>
+          <span class="tiny muted">Synced from Outlook 4 minutes ago. Read only, Outlook remains the source of truth.</span>
         </div>
       </div>
-      <p class="page-sub">Every client meeting with its prep stages in Heritage order: team file review, then Tom's file review, then the client meeting. Foreman flags any stage that is not booked.</p>
+      <p class="page-sub">Every client meeting pulled from Outlook with its prep stages in Heritage order: team file review, then Tom's file review, then the client meeting. Foreman flags any stage that is not booked. Scheduling stays in Outlook; tasks are created here.</p>
     </div>
 
     <div class="tabs">
@@ -1544,6 +1545,82 @@ function renderForemanMeetingDetail() {
         ` : ''}
       </aside>
     </div>
+  `;
+}
+
+/* ── Foreman · Schedule changes (HER-10) ─────────────────── */
+
+function changeTypeBadge(type) {
+  if (type === 'Cancelled') return `<span class="badge badge--warning">Cancelled</span>`;
+  if (type === 'New meeting') return `<span class="badge badge--success">New meeting</span>`;
+  if (type === 'Shortened') return `<span class="badge badge--info">Shortened</span>`;
+  return `<span class="badge badge--info">Moved</span>`;
+}
+
+function renderForemanChanges() {
+  const total = SCHEDULE_CHANGES.length;
+  const reviewed = SCHEDULE_CHANGES.filter((ch) => ch.review).length;
+  const pending = total - reviewed;
+
+  return `
+    <div class="page-head">
+      <span class="page-kicker">Foreman · Project Manager</span>
+      <div class="page-head-row">
+        <h1>Schedule changes</h1>
+        <div class="page-actions">
+          <span class="tiny muted">Synced from Outlook 4 minutes ago. Read only, Outlook remains the source of truth.</span>
+        </div>
+      </div>
+      <p class="page-sub">Every calendar change the Outlook sync picks up lands here, roughly every fifteen minutes. Mark each one good or flag it for follow-up. Nothing writes back to Outlook.</p>
+    </div>
+
+    <div class="card mb-md" style="padding:14px 16px">
+      <div class="row" style="gap:14px">
+        <span class="health-pill ${pending ? 'health-pill--amber' : 'health-pill--green'}">${healthDot(pending ? 'amber' : 'green')} ${reviewed} of ${total} reviewed</span>
+        <span class="tiny muted">${pending ? `${pending} change${pending === 1 ? '' : 's'} awaiting review` : 'All changes reviewed'}</span>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Change</th>
+            <th>Client</th>
+            <th>Detected</th>
+            <th>Impact</th>
+            <th style="text-align:right">Review</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${SCHEDULE_CHANGES.map((ch) => {
+            const c = ch.clientId ? clientById(ch.clientId) : null;
+            const linked = ch.meetingId && meetingById(ch.meetingId);
+            return `
+              <tr${linked ? ` data-action="open-meeting" data-meeting="${ch.meetingId}"` : ''}>
+                <td>
+                  <div class="row" style="gap:8px">${changeTypeBadge(ch.type)}<span style="font-weight:500">${esc(ch.title)}</span></div>
+                  <div class="tiny muted" style="margin-top:4px">${esc(ch.detail)} · ${esc(ch.changedBy)}</div>
+                </td>
+                <td class="muted tiny">${c ? esc(c.name) : 'Internal'}</td>
+                <td class="tiny muted" style="white-space:nowrap">${esc(ch.detected)}</td>
+                <td class="tiny muted">${esc(ch.impact)}</td>
+                <td style="text-align:right;white-space:nowrap">
+                  ${ch.review === 'good'
+                    ? `<span class="badge badge--success">Marked good</span>`
+                    : ch.review === 'follow-up'
+                      ? `<span class="badge badge--warning">Follow-up</span>`
+                      : `<button class="btn btn--secondary btn--sm" data-action="review-change" data-change="${ch.id}" data-verdict="good">Good</button>
+                         <button class="btn btn--ghost btn--sm" data-action="review-change" data-change="${ch.id}" data-verdict="follow-up">Flag for follow-up</button>`}
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <p class="tiny muted" style="margin-top:12px">Changes are detected from the read-only Outlook sync. Marking a change here never edits the Outlook event.</p>
   `;
 }
 
@@ -1857,6 +1934,7 @@ function dispatchRoute() {
     if (segs[0] === 'tasks' && hasId) return renderForemanTaskDetail();
     if (segs[0] === 'meetings' && !hasId) return renderForemanMeetings();
     if (segs[0] === 'meetings' && hasId) return renderForemanMeetingDetail();
+    if (segs[0] === 'changes') return renderForemanChanges();
     if (segs[0] === 'prep') return renderForemanMeetings(); // merged into Meetings & prep (HER-07); old links keep working
   }
   if (state.app === 'sam') {
@@ -2684,6 +2762,20 @@ function bindEvents() {
     if (action === 'new-task') {
       e.preventDefault();
       openNewTaskModal();
+      return;
+    }
+    if (action === 'review-change') {
+      e.preventDefault();
+      const ch = scheduleChangeById(a.dataset.change);
+      if (!ch || ch.review) return;
+      ch.review = a.dataset.verdict === 'follow-up' ? 'follow-up' : 'good';
+      const reviewed = SCHEDULE_CHANGES.filter((x) => x.review).length;
+      if (ch.review === 'good') {
+        toast(`Marked good. ${reviewed} of ${SCHEDULE_CHANGES.length} changes reviewed. Outlook is untouched.`, 'success');
+      } else {
+        toast(`Flagged for follow-up. ${reviewed} of ${SCHEDULE_CHANGES.length} changes reviewed. Outlook is untouched.`);
+      }
+      render();
       return;
     }
     if (action === 'send-for-approval') {

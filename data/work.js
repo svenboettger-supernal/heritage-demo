@@ -707,6 +707,77 @@ export function meetingById(id) {
   return MEETINGS.find((m) => m.id === id) || null;
 }
 
+// HER-10 · Schedule changes pulled from the Outlook read-only sync.
+// Outlook is the source of truth; the sync runs roughly every fifteen minutes
+// and nothing writes back. Jess reviews each change: good or follow-up.
+// review: null (pending) | 'good' | 'follow-up' — mutated in memory by the app.
+export const SCHEDULE_CHANGES = [
+  {
+    id: 'chg-9101',
+    type: 'Moved',
+    meetingId: 'mtg-brooks-recovery',
+    clientId: 'brooks-halley',
+    title: 'Haugland · Tom Sr. + Chris Giamo follow-up',
+    detail: 'Moved from Wed May 13, 2:00 PM to Thu May 14, 11:00 AM',
+    changedBy: 'Chris Giamo (organizer)',
+    detected: 'Today · 8:12 AM',
+    impact: "Tom's file review is still not booked and the meeting is now a day closer.",
+    review: null,
+  },
+  {
+    id: 'chg-9102',
+    type: 'Shortened',
+    meetingId: 'mtg-whitcombe-ir1',
+    clientId: 'whitcombe',
+    title: 'Mills · IR2 review · Vic',
+    detail: 'Shortened from 90 minutes to 60 minutes, still May 19, 3:30 PM',
+    changedBy: 'Jeff Filone (NEPWM)',
+    detected: 'Today · 8:12 AM',
+    impact: "Agenda was built for 90 minutes. Trim it before Jen's prep on May 15.",
+    review: null,
+  },
+  {
+    id: 'chg-9103',
+    type: 'New meeting',
+    meetingId: null,
+    clientId: 'aldermount',
+    title: 'Garten · Alan Garten + MH planning team walkthrough',
+    detail: 'New on the calendar for Wed May 20, 1:00 PM, 60 minutes',
+    changedBy: 'MH planning team (organizer)',
+    detected: 'Today · 7:45 AM',
+    impact: "No prep stages booked yet. Team file review and Tom's file review both need slots.",
+    review: null,
+  },
+  {
+    id: 'chg-9104',
+    type: 'Cancelled',
+    meetingId: null,
+    clientId: 'devonshire',
+    title: 'Dana · valuation check-in with Gary Cassiello',
+    detail: 'Fri May 15, 10:00 AM cancelled by the organizer',
+    changedBy: 'Gary Cassiello (organizer)',
+    detected: 'Yesterday · 4:30 PM',
+    impact: 'Asset Sheet send (T-2054) loses its review slot. Reconfirm timing with Gary Cassiello.',
+    review: null,
+  },
+  {
+    id: 'chg-9105',
+    type: 'Moved',
+    meetingId: 'mtg-saint-croix-q2',
+    clientId: 'saint-croix',
+    title: 'Chrinian · Board Meeting (Q2 Renewal)',
+    detail: 'Moved from 10:30 AM to 9:00 AM, still Thu May 21',
+    changedBy: "Eugene Chrinian's office",
+    detected: 'Yesterday · 2:05 PM',
+    impact: "Tom's file review on May 18 still holds. Board pack is needed 90 minutes earlier.",
+    review: null,
+  },
+];
+
+export function scheduleChangeById(id) {
+  return SCHEDULE_CHANGES.find((c) => c.id === id) || null;
+}
+
 export const PREP_PROTOCOL = [
   {
     clientId: 'koenigsberg',
