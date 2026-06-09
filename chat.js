@@ -1,7 +1,7 @@
 // Heritage demo · Scripted per-app chatbot.
 // Intent matching + data-pull helpers + persistent per-app history.
 
-import { CLIENTS, STAGES, MORNING_DIGEST, clientById, stageById } from './data/clients.js';
+import { CLIENTS, STAGES, MORNING_DIGEST, clientById, stageById, lastTouchLabel } from './data/clients.js';
 import { TASKS, MEETINGS, PREP_PROTOCOL, MONDAY_RUNDOWN, taskById, meetingById } from './data/work.js';
 import { TICKETS, KB_ARTICLES, PERSONAS, PERFORMANCE, ticketById } from './data/support.js';
 
@@ -132,7 +132,7 @@ function findTicketByText(text) {
 function clientSnapshot(c) {
   const stage = stageById(c.stage);
   const healthLabel = c.health === 'green' ? 'On Track' : c.health === 'amber' ? 'At Risk' : 'Critical';
-  const reply = `**${c.name}** is in stage **${stage.label}** and health is **${healthLabel}**. ${c.healthReason}\n\n**Next step:** ${c.nextStep}\n\n**Owner:** ${c.owner} · **Days in stage:** ${c.daysInStage} · **Last touch:** ${c.lastTouch}`;
+  const reply = `**${c.name}** is in stage **${stage.label}** and health is **${healthLabel}**. ${c.healthReason}\n\n**Next step:** ${c.nextStep}\n\n**Owner:** ${c.owner} · **Days in stage:** ${c.daysInStage} · **Last touch:** ${lastTouchLabel(c)}`;
   const citations = [
     { label: `Client record · ${c.name}`, href: `#/hank/clients/${c.id}?client=${c.id}` },
   ];
@@ -192,7 +192,7 @@ function newLeadsSummary() {
   const leads = CLIENTS.filter((c) => c.stage === 'new-lead');
   if (leads.length === 0) return { reply: 'No new leads currently open.', citations: [] };
   return {
-    reply: `${leads.length} new lead${leads.length === 1 ? '' : 's'}:\n\n` + leads.map((c) => `• **${c.name}** — ${c.healthReason}\n  Owner: ${c.owner} · ${c.lastTouch}`).join('\n'),
+    reply: `${leads.length} new lead${leads.length === 1 ? '' : 's'}:\n\n` + leads.map((c) => `• **${c.name}** — ${c.healthReason}\n  Owner: ${c.owner} · ${lastTouchLabel(c)}`).join('\n'),
     citations: leads.map((c) => ({ label: c.name, href: `#/hank/clients/${c.id}?client=${c.id}` })),
   };
 }

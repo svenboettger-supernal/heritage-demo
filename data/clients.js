@@ -75,7 +75,7 @@ export const CLIENTS = [
     healthReason: 'On cadence. IR2 Meeting Letter delivered May 10. Q2 Renewal cycle ahead of schedule.',
     customerType: 'hnw-family',
     owner: 'Tom Sr.',
-    lastTouch: '2 days ago',
+    lastTouch: '2026-05-10',
     daysInStage: 412,
     nextStep: 'IR3 May 22 with Craig + Yvonne. Foreman has the prep pack ready.',
     netWorthBand: '$80M – $120M',
@@ -96,6 +96,8 @@ export const CLIENTS = [
       { type: 'meeting', date: '2026-05-10', summary: 'IR2 with Craig + Yvonne · Q2 Renewal cycle', source: 'mtg-koenigsberg-ir2', who: 'Tom Sr.' },
       { type: 'email', date: '2026-04-24', summary: 'Yvonne sent updated asset list for Q2 refresh', who: 'Yvonne Hernandez' },
       { type: 'meeting', date: '2026-04-21', summary: 'Eugene + Jake meeting to discuss life insurance options', who: 'Tom Sr.' },
+      { type: 'email', date: '2026-04-09', summary: 'Reply received · Yvonne confirmed the updated asset list is on its way for the Q2 refresh', who: 'Hank · auto-logged, last touch updated' },
+      { type: 'email', date: '2026-04-07', summary: 'Quarterly email sent · Q1 2026 client update', who: 'Hank via Outlook' },
       { type: 'meeting', date: '2026-03-04', summary: 'PIR / Q2 cycle opener', source: 'mtg-koenigsberg-preinternal', who: 'Tom Sr.' },
       { type: 'meeting', date: '2026-01-21', summary: 'Koenigsberg Scout Call · Jake insurance approach', who: 'Tom Sr.' },
     ],
@@ -116,7 +118,7 @@ export const CLIENTS = [
     healthReason: 'Phase II in motion for all 3 brothers. Valuations not complete — IRA beneficiary changes pending at NEPWM.',
     customerType: 'hnw-family',
     owner: 'Jen',
-    lastTouch: '5 days ago',
+    lastTouch: '2026-05-07',
     daysInStage: 87,
     nextStep: 'Diane forwarding executed apps to carrier. NEPWM to confirm IRA beneficiary updates by May 13.',
     netWorthBand: '$60M – $90M',
@@ -136,6 +138,7 @@ export const CLIENTS = [
       { type: 'meeting', date: '2026-04-23', summary: 'IR2 with John Mills · investment options', who: 'Jen' },
       { type: 'meeting', date: '2026-04-21', summary: 'IR2 with Matt Mills · valuations review', who: 'Jen' },
       { type: 'email', date: '2026-04-22', summary: 'NEPWM confirming IRA beneficiary updates for Vic', who: 'Jeff Filone' },
+      { type: 'email', date: '2026-04-07', summary: 'Quarterly email sent · Q1 2026 client update', who: 'Hank via Outlook' },
       { type: 'meeting', date: '2026-03-24', summary: 'Vic Mills · valuations meeting', who: 'Jen' },
     ],
     documents: [
@@ -154,7 +157,7 @@ export const CLIENTS = [
     healthReason: 'MH engagement letter executed March 28. Flow Diagram in production at MH. Phase II Asset Sheet uploaded to AI.',
     customerType: 'partner-firm',
     owner: 'Jen',
-    lastTouch: '4 days ago',
+    lastTouch: '2026-05-08',
     daysInStage: 64,
     nextStep: 'MH delivers Flow Diagram week of May 18. Tom Jr. to review before sharing with Alan.',
     netWorthBand: '$100M – $150M',
@@ -169,6 +172,7 @@ export const CLIENTS = [
       { name: 'Garten Phase II planning package', type: 'expansion', expectedRevenue: 240000, status: 'Open', owner: 'Jen', dueDate: '2026-07-31' },
     ],
     activity: [
+      { type: 'email', date: '2026-04-07', summary: 'Quarterly email sent · Q1 2026 client update', who: 'Hank via Outlook' },
       { type: 'email', date: '2026-04-07', summary: 'Flow Diagram sent to MH to begin drafting', who: 'Tom Jr.' },
       { type: 'email', date: '2026-03-28', summary: 'MH executed engagement letter received', who: 'MH' },
       { type: 'meeting', date: '2026-03-02', summary: 'IR1 with Alan Garten', source: 'mtg-aldermount-ir1', who: 'Tom Sr.' },
@@ -189,7 +193,7 @@ export const CLIENTS = [
     healthReason: 'Captured 5 days ago. Approach call within first-touch SLA. DelPrete + Giunta both committed referrals.',
     customerType: 'partner-firm',
     owner: 'Jen',
-    lastTouch: '3 days ago',
+    lastTouch: '2026-05-09',
     daysInStage: 5,
     nextStep: 'Tom Sr. personally calls Peter Castellana — owns Western Beef; 80 y/o, fourth wife, children in business.',
     insight:
@@ -212,10 +216,10 @@ export const CLIENTS = [
     kicker: 'Long Island, NY · Chris Giamo referral',
     stage: 'active-client',
     health: 'red',
-    healthReason: 'Last meeting was August 2025. Phase I drag risks losing momentum with Chris Giamo. Ed Hackenberg not responding.',
+    healthReason: 'Last meeting was August 2025. Follow-up overdue; Phase I drag risks losing momentum with Chris Giamo. Ed Hackenberg not responding.',
     customerType: 'hnw-family',
     owner: 'Tom Sr.',
-    lastTouch: '11 days ago',
+    lastTouch: '2026-05-02',
     daysInStage: 264,
     nextStep: 'Tom Sr. follows up with Chris Giamo this week (golfed May 2 — committed to follow-up).',
     netWorthBand: '$1B+',
@@ -248,7 +252,7 @@ export const CLIENTS = [
     healthReason: 'On cadence. Board Meeting locked for May 21. KM webinar held April 14 on Nevada trust.',
     customerType: 'board',
     owner: 'Matt',
-    lastTouch: '8 days ago',
+    lastTouch: '2026-05-12',
     daysInStage: 730,
     nextStep: 'Chrinian Board Meeting May 21, 9:00 ET. Matt has the prep pack ready.',
     netWorthBand: '$200M – $400M',
@@ -267,6 +271,8 @@ export const CLIENTS = [
     activity: [
       { type: 'email', date: '2026-05-12', summary: 'Renewal Meeting Letter delivered — May 14 review', who: 'Matt' },
       { type: 'meeting', date: '2026-04-14', summary: 'KM webinar with Eugene on Nevada trust changes', who: 'Keith Meltzer' },
+      { type: 'email', date: '2026-04-09', summary: 'Reply received · Eugene asked to add a NEWCO update to the May board agenda', who: 'Hank · auto-logged, last touch updated' },
+      { type: 'email', date: '2026-04-07', summary: 'Quarterly email sent · Q1 2026 client update', who: 'Hank via Outlook' },
       { type: 'meeting', date: '2026-01-15', summary: 'IR2 with Eugene · estate review', source: 'mtg-chrinian-ir2', who: 'Tom Sr.' },
     ],
     documents: [
@@ -284,7 +290,7 @@ export const CLIENTS = [
     healthReason: 'Engagement Letter signed April 2. Insurance underwriting in motion via Kearney & Raffanelli.',
     customerType: 'partner-firm',
     owner: 'Marcus',
-    lastTouch: '6 days ago',
+    lastTouch: '2026-05-06',
     daysInStage: 32,
     nextStep: 'Marcus to f/u with Kearney & Raffanelli (underwriters) on Andrew Penson medical disclosures.',
     netWorthBand: '$150M – $250M',
@@ -317,7 +323,7 @@ export const CLIENTS = [
     healthReason: 'Valuations from Goodman Marks complete April 17. Awaiting final valuations on remaining holdings before Phase II Letter.',
     customerType: 'hnw-family',
     owner: 'Marcus',
-    lastTouch: '13 days ago',
+    lastTouch: '2026-04-27',
     daysInStage: 41,
     nextStep: 'Marcus to send updated Asset Sheet to Fred Dana + Gary Cassiello by May 13.',
     netWorthBand: '$70M – $100M',
@@ -330,10 +336,14 @@ export const CLIENTS = [
     ],
     opportunities: [
       { name: 'Dana Phase II planning', type: 'expansion', expectedRevenue: 180000, status: 'Open', owner: 'Marcus', dueDate: '2026-08-15' },
+      { name: 'Sayville warehouse sale · proceeds planning', type: 'expansion', expectedRevenue: 120000, status: 'Open', owner: 'Marcus', dueDate: '2026-07-15', fromReply: true },
     ],
     activity: [
       { type: 'email', date: '2026-04-27', summary: 'IR2 with Fred + Gary Cassiello', who: 'Marcus' },
       { type: 'email', date: '2026-04-17', summary: 'Goodman Marks valuations received — partial', who: 'Marcus' },
+      { type: 'opportunity', date: '2026-04-10', summary: 'Opportunity created from quarterly reply · Sayville warehouse sale proceeds planning', who: 'Hank' },
+      { type: 'email', date: '2026-04-10', summary: 'Reply received · Fred is selling the Sayville warehouse and wants planning for the proceeds', who: 'Hank · auto-logged, last touch updated' },
+      { type: 'email', date: '2026-04-07', summary: 'Quarterly email sent · Q1 2026 client update', who: 'Hank via Outlook' },
       { type: 'meeting', date: '2026-02-12', summary: 'IR1 with Fred Dana', source: 'mtg-dana-ir1', who: 'Tom Sr.' },
     ],
     documents: [
@@ -342,7 +352,57 @@ export const CLIENTS = [
       { name: 'Dana Meeting Letter 4-27-26.docx', type: 'Word', lastModified: '2026-05-04', source: 'SharePoint' },
     ],
   },
+  {
+    id: 'fairhaven',
+    name: 'Esposito Family',
+    kicker: 'Garden City, NY · renewal cadence lapsed',
+    stage: 'active-client',
+    health: 'red',
+    healthReason: 'No touch in 14 months. Overdue follow-up is dragging the score. Last IR was March 2025 and the Q1 quarterly email never reached them.',
+    customerType: 'hnw-family',
+    owner: 'Tom Sr.',
+    lastTouch: '2025-03-06',
+    daysInStage: 1160,
+    nextStep: 'Tom Sr. calls Sal Esposito this week to restart the IR cadence, then include the family in the Q2 quarterly send.',
+    netWorthBand: '$40M – $70M',
+    insight:
+      "Tom Sr. flagged this case himself: no contact in over a year. Sal renewed in early 2025 and then went quiet. The Espositos also missed the Q1 quarterly send because the old Outlook distribution list was stale, exactly the failure mode the centralized quarterly email removes. A direct call from Tom Sr. plus the Q2 send is the fastest path back to cadence.",
+    stakeholders: [
+      { name: 'Sal Esposito', role: 'Principal' },
+      { name: 'Marie Esposito', role: 'Spouse' },
+      { name: 'Anthony Russo', role: 'CPA / POC', firm: 'Russo & Co.' },
+    ],
+    opportunities: [],
+    activity: [
+      { type: 'meeting', date: '2025-03-06', summary: 'IR2 with Sal and Marie · annual review', who: 'Tom Sr.' },
+      { type: 'email', date: '2025-01-20', summary: 'Annual Renewal Engagement Letter executed', who: 'Ang' },
+    ],
+    documents: [
+      { name: 'Esposito Annual Renewal Engagement Letter 2025.docx', type: 'Word', lastModified: '2025-01-20', source: 'SharePoint' },
+      { name: 'Esposito Asset Sheet 2024.xlsx', type: 'Excel', lastModified: '2024-11-12', source: 'SharePoint' },
+    ],
+  },
 ];
+
+/* ── Demo clock + last-touch helpers ───────────────────────── */
+
+export const DEMO_TODAY = '2026-05-12';
+
+export function touchAgeDays(c) {
+  return Math.round((new Date(DEMO_TODAY) - new Date(c.lastTouch)) / 86400000);
+}
+
+export function touchOverdue(c) {
+  return touchAgeDays(c) >= 365;
+}
+
+export function lastTouchLabel(c) {
+  const days = touchAgeDays(c);
+  if (days <= 0) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 30) return `${days} days ago`;
+  return `${Math.round(days / 30.44)} months ago`;
+}
 
 export function clientById(id) {
   return CLIENTS.find((c) => c.id === id) || null;
@@ -358,7 +418,7 @@ export const MORNING_DIGEST = {
     { clientId: 'helmsley', from: 'new-lead', to: 'engaged', when: '32 days ago' },
     { clientId: 'aldermount', from: 'engaged', to: 'qualified', when: '64 days ago' },
   ],
-  atRisk: ['brooks-halley', 'whitcombe', 'devonshire'],
+  atRisk: ['fairhaven', 'brooks-halley', 'whitcombe', 'devonshire'],
   todaysFocus: [
     { clientId: 'brooks-halley', note: 'Tom Sr. follow-up with Chris Giamo this week (golfed May 2).' },
     { clientId: 'whitcombe', note: 'Confirm Mills valuations complete; unblock IRA beneficiary at NEPWM.' },

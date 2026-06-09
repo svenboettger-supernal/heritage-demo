@@ -1,5 +1,5 @@
 // Heritage demo · App entry, router, state, view renderers.
-import { CLIENTS, STAGES, CUSTOMER_TYPES, MORNING_DIGEST, clientById, stageById } from './data/clients.js';
+import { CLIENTS, STAGES, CUSTOMER_TYPES, MORNING_DIGEST, DEMO_TODAY, clientById, stageById, lastTouchLabel, touchOverdue } from './data/clients.js';
 import { TASKS, MEETINGS, MONDAY_RUNDOWN, STATUSES, PRIORITIES, DAILY_CAPACITY, SCHEDULE_CHANGES, tasksForClient, taskById, meetingById, scheduleChangeById, deriveProjects, projectById } from './data/work.js';
 import { TICKETS, KB_ARTICLES, SAVED_VIEWS, PERSONAS, PERFORMANCE, ticketsForClient, ticketById } from './data/support.js';
 import { BOTS, getHistory, appendMessage, resetHistory, matchIntent, suggestedReplies } from './chat.js';
@@ -286,6 +286,7 @@ function svg(name) {
     arrow: '<path d="M5 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
     back: '<path d="M11 3L6 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
     pen: '<path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
+    mail: '<rect x="1.5" y="3" width="13" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 4.5L8 9l5.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
     warning: '<path d="M8 2L1.5 13.5h13L8 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.9" fill="currentColor"/>',
     sync: '<path d="M13.5 8a5.5 5.5 0 01-9.6 3.7M2.5 8a5.5 5.5 0 019.6-3.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M12.5 1.5v3h-3M3.5 14.5v-3h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
   };
@@ -344,16 +345,31 @@ function renderShell() {
 
 const HEALTH_LABEL = { green: 'On Track', amber: 'At Risk', red: 'Critical' };
 
-function renderHankPipeline() {
+function pipelineFilteredClients() {
   const filterStage = state.query.stage || 'all';
   const filterHealth = state.query.health || 'all';
   const filterType = state.query.type || 'all';
-  const clients = CLIENTS.filter((c) => {
+  return CLIENTS.filter((c) => {
     if (filterStage !== 'all' && c.stage !== filterStage) return false;
     if (filterHealth !== 'all' && c.health !== filterHealth) return false;
     if (filterType !== 'all' && c.customerType !== filterType) return false;
     return true;
   });
+}
+
+function lastTouchCell(c) {
+  const label = lastTouchLabel(c);
+  if (touchOverdue(c)) {
+    return `<div><span class="badge badge--error">${esc(label)}</span><div class="tiny" style="color:var(--error-fg);margin-top:3px">Follow-up overdue</div></div>`;
+  }
+  return `<span class="muted tiny">${esc(label)}</span>`;
+}
+
+function renderHankPipeline() {
+  const filterStage = state.query.stage || 'all';
+  const filterHealth = state.query.health || 'all';
+  const filterType = state.query.type || 'all';
+  const clients = pipelineFilteredClients();
 
   const stageCount = (id) => CLIENTS.filter((c) => c.stage === id).length;
   const healthCount = (h) => CLIENTS.filter((c) => c.health === h).length;
@@ -365,6 +381,7 @@ function renderHankPipeline() {
         <h1>Pipeline</h1>
         <div class="page-actions">
           <button class="btn btn--secondary btn--sm">${svg('plus')} New record</button>
+          <button class="btn btn--secondary btn--sm" data-action="open-mass-email">${svg('mail')} Quarterly email</button>
           <button class="btn btn--primary btn--sm" data-action="open-draft-modal" data-draft="bulk">${svg('pen')} Draft outbound batch</button>
         </div>
       </div>
@@ -414,7 +431,7 @@ function renderHankPipeline() {
               <td>${esc(stageById(c.stage)?.label || c.stage)}</td>
               <td>${healthPill(c)}</td>
               <td>${esc(c.owner)}</td>
-              <td class="muted tiny">${esc(c.lastTouch)}</td>
+              <td>${lastTouchCell(c)}</td>
               <td class="col-right">${c.opportunities.length}</td>
             </tr>
           `).join('')}
@@ -498,7 +515,7 @@ function renderHankClient() {
             <div class="row-between"><span class="muted tiny">Owner</span><strong>${esc(c.owner)}</strong></div>
             ${c.netWorthBand ? `<div class="row-between"><span class="muted tiny">Net worth band</span><strong>${esc(c.netWorthBand)}</strong></div>` : ''}
             <div class="row-between"><span class="muted tiny">Customer type</span><strong>${esc(CUSTOMER_TYPES[c.customerType].label)}</strong></div>
-            <div class="row-between"><span class="muted tiny">Last touch</span><strong>${esc(c.lastTouch)}</strong></div>
+            <div class="row-between"><span class="muted tiny">Last touch</span>${touchOverdue(c) ? `<span class="badge badge--error">${esc(lastTouchLabel(c))}</span>` : `<strong>${esc(lastTouchLabel(c))}</strong>`}</div>
           </div>
         </div>
       </aside>
@@ -660,8 +677,8 @@ function hankOpportunities(c) {
           <tbody>
             ${c.opportunities.map((o) => `
               <tr>
-                <td><div style="font-weight:500">${esc(o.name)}</div></td>
-                <td><span class="badge">${esc(o.type)}</span></td>
+                <td><div style="font-weight:500">${esc(o.name)}</div>${o.fromReply ? '<div class="tiny muted" style="margin-top:2px">Created by Hank from a quarterly email reply</div>' : ''}</td>
+                <td><span class="badge">${esc(o.type)}</span>${o.fromReply ? ' <span class="badge badge--outline">From reply</span>' : ''}</td>
                 <td class="col-right col-mono">${fmtMoney(o.expectedRevenue)}</td>
                 <td>${o.status === 'Stalled' ? '<span class="badge badge--warning">Stalled</span>' : '<span class="badge badge--info">' + esc(o.status) + '</span>'}</td>
                 <td>${esc(o.owner)}</td>
@@ -2177,6 +2194,69 @@ function closeDialog() {
   root.setAttribute('aria-hidden', 'true');
 }
 
+/* ── Quarterly mass email modal ──────────────────────────── */
+
+function massEmailBody() {
+  return `Hello,
+
+A short quarterly update from Heritage Strategies.
+
+1. Estate and gift planning: the federal exemption window remains the planning priority for 2026. We are reviewing every family's position ahead of year-end.
+2. AI Platform: Asset Sheets and Flow Diagrams are now refreshed quarterly. If anything has changed (a property sale, a new entity, a liquidity event), reply to this email and we will fold it into your next review.
+3. Scheduling: Q2 review meetings are being booked now. Reply with two dates that work and we will confirm.
+
+If anything in your situation has changed, reply here. It comes straight to our desk.
+
+Best,
+Tom
+Heritage Strategies`;
+}
+
+function openMassEmailModal() {
+  const clients = pipelineFilteredClients();
+  const root = document.getElementById('dialog-root');
+  const dialog = document.getElementById('dialog');
+  root.dataset.open = 'true';
+  root.setAttribute('aria-hidden', 'false');
+  dialog.innerHTML = `
+    <button class="dialog-close" data-dialog-close aria-label="Close">×</button>
+    <div class="page-kicker">Quarterly email · Hank</div>
+    <div class="dialog-title">Q2 2026 client update</div>
+    <div class="dialog-sub">Sends through the Heritage Outlook connection. Hank logs the send to every record, auto-logs replies as they arrive, and updates last touch.</div>
+
+    <dl class="draft-meta">
+      <dt>From</dt><dd>Tom Sr. · Heritage Strategies</dd>
+      <dt>To</dt><dd>${clients.length} recipient${clients.length === 1 ? '' : 's'} · current pipeline filters applied</dd>
+    </dl>
+    <div class="flex-wrap" style="margin:10px 0 14px">
+      ${clients.length === 0 ? '<span class="muted tiny">No clients match the current filters.</span>' : clients.map((c) => `<span class="badge badge--outline">${esc(c.name)}</span>`).join('')}
+    </div>
+
+    <form id="mass-email-form">
+      <label class="label"><span>Subject</span><input class="input" name="subject" value="Heritage Strategies · Q2 2026 client update" required></label>
+      <label class="label"><span>Body</span><textarea name="body" rows="9">${esc(massEmailBody())}</textarea></label>
+      <div class="dialog-foot">
+        <button class="btn btn--ghost btn--sm" type="button" data-dialog-close>Cancel</button>
+        <button class="btn btn--primary btn--sm" type="submit" ${clients.length === 0 ? 'disabled' : ''}>${svg('mail')} Send via Outlook</button>
+      </div>
+    </form>
+  `;
+}
+
+function handleMassEmailSubmit(form) {
+  const fd = new FormData(form);
+  const subject = String(fd.get('subject') || '').trim() || 'Quarterly client update';
+  const clients = pipelineFilteredClients();
+  if (clients.length === 0) return;
+  for (const c of clients) {
+    c.activity.unshift({ type: 'email', date: DEMO_TODAY, summary: `Quarterly email sent · ${subject}`, who: 'Hank via Outlook' });
+    c.lastTouch = DEMO_TODAY;
+  }
+  closeDialog();
+  toast(`Quarterly email sent to ${clients.length} client${clients.length === 1 ? '' : 's'} via Outlook. Logged to each record; last touch updated. Replies will auto-log as they arrive.`, 'success');
+  render();
+}
+
 /* ── New task modal ──────────────────────────────────────── */
 
 function nextTaskId() {
@@ -2764,6 +2844,11 @@ function bindEvents() {
       openNewTaskModal();
       return;
     }
+    if (action === 'open-mass-email') {
+      e.preventDefault();
+      openMassEmailModal();
+      return;
+    }
     if (action === 'review-change') {
       e.preventDefault();
       const ch = scheduleChangeById(a.dataset.change);
@@ -2838,12 +2923,19 @@ function bindEvents() {
     if (e.target.matches('[data-dialog-close]')) closeDialog();
   });
 
-  // New task form (lives inside the dialog)
+  // Dialog forms (new task + quarterly mass email)
   document.addEventListener('submit', (e) => {
-    const form = e.target.closest('#new-task-form');
-    if (!form) return;
-    e.preventDefault();
-    handleNewTaskSubmit(form);
+    const taskForm = e.target.closest('#new-task-form');
+    if (taskForm) {
+      e.preventDefault();
+      handleNewTaskSubmit(taskForm);
+      return;
+    }
+    const massForm = e.target.closest('#mass-email-form');
+    if (massForm) {
+      e.preventDefault();
+      handleMassEmailSubmit(massForm);
+    }
   });
 
   // Estimated-hours inline edit on task detail

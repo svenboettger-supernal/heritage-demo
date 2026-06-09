@@ -1090,6 +1090,7 @@ a:hover { color: var(--action-9); }
 .timeline-item[data-type="email"]::before { border-color: var(--viz-2); }
 .timeline-item[data-type="call"]::before { border-color: var(--viz-4); }
 .timeline-item[data-type="meeting"]::before { border-color: var(--viz-0); }
+.timeline-item[data-type="opportunity"]::before { border-color: var(--success); }
 
 .timeline-date {
   font-size: 11.5px;
