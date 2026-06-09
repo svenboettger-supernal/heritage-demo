@@ -324,6 +324,9 @@ function renderShell() {
         <span>${esc(item.label)}</span>
       </a>
     `).join('')}
+    <div class="sidebar-logo">
+      <img src="assets/heritage-logo.webp" alt="Heritage Strategies LLC">
+    </div>
     <div class="sidebar-foot">
       Heritage AI Employee Operating System · Demo build · Data is fictional.
     </div>

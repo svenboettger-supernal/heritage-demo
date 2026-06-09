@@ -250,20 +250,6 @@ html.locked body { overflow: hidden; }
   z-index: var(--z-dropdown);
 }
 
-/* Heritage mark — real file, never redrawn, never recolored.
-   Warm-white plate keeps the wordmark above AA on the navy nav. */
-.topbar-logo {
-  display: inline-flex;
-  align-items: center;
-  flex: none;
-  background: hsl(44 36% 96%);
-  border-radius: var(--radius-pill);
-  padding: 5px 14px;
-  text-decoration: none;
-}
-
-.topbar-logo img { display: block; height: 30px; width: auto; }
-
 /* Topbar children on the navy surface */
 .topbar .app-switcher-trigger {
   color: var(--nav-fg);
@@ -570,8 +556,16 @@ html.locked body { overflow: hidden; }
 .sidebar-item svg { width: 16px; height: 16px; color: var(--fg-muted); flex: none; }
 .sidebar-item[data-active="true"] svg { color: var(--state-fg); }
 
-.sidebar-foot {
+/* Heritage mark — real file, never redrawn, never recolored,
+   on the sidebar's white surface. */
+.sidebar-logo {
   margin-top: auto;
+  padding: 12px;
+}
+
+.sidebar-logo img { display: block; height: 34px; width: auto; }
+
+.sidebar-foot {
   padding: 12px;
   font-size: 11px;
   color: var(--fg-muted);
