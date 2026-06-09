@@ -469,6 +469,10 @@ export const MEETINGS = [
     time: '10:00',
     durationMin: 60,
     status: 'Letter Sent',
+    prep: [
+      { name: 'Team file review', date: '2026-05-05', status: 'Done' },
+      { name: "Tom's file review", date: '2026-05-07', status: 'Done' },
+    ],
     attendees: ['Tom Sr.', 'Craig Koenigsberg', 'Yvonne Hernandez'],
     transcriptExcerpt:
       "CK: We need the Jake life insurance decision before year-end.\nYH: I'll coordinate the underwriting packet with Heritage.\nTS: Foreman will track. IR3 May 22 — Keith joins for the Nevada angle.",
@@ -494,6 +498,10 @@ export const MEETINGS = [
     time: '14:00',
     durationMin: 90,
     status: 'Prep Ready',
+    prep: [
+      { name: 'Team file review', date: '2026-05-11', status: 'Done' },
+      { name: "Tom's file review", date: '2026-05-20', status: 'Scheduled' },
+    ],
     attendees: ['Marcus', 'Tom Jr.', 'Andrew Penson'],
     transcriptExcerpt: '',
     summaryLetter: null,
@@ -508,6 +516,10 @@ export const MEETINGS = [
     time: '15:30',
     durationMin: 60,
     status: 'Prep Ready',
+    prep: [
+      { name: 'Team file review', date: '2026-05-08', status: 'Done' },
+      { name: "Tom's file review", date: '2026-05-15', status: 'Scheduled' },
+    ],
     attendees: ['Jen', 'Vic Mills', 'Jeff Filone (NEPWM)'],
     transcriptExcerpt: '',
     summaryLetter: null,
@@ -522,6 +534,10 @@ export const MEETINGS = [
     time: '11:00',
     durationMin: 45,
     status: 'Prep Ready',
+    prep: [
+      { name: 'Team file review', date: '2026-05-13', status: 'Scheduled' },
+      { name: "Tom's file review", date: null, status: 'Not booked' },
+    ],
     attendees: ['Tom Sr.', 'Chris Giamo'],
     transcriptExcerpt: '',
     summaryLetter: null,
@@ -536,6 +552,10 @@ export const MEETINGS = [
     time: '09:00',
     durationMin: 45,
     status: 'Letter Sent',
+    prep: [
+      { name: 'Team file review', date: '2026-02-26', status: 'Done' },
+      { name: "Tom's file review", date: '2026-03-02', status: 'Done' },
+    ],
     attendees: ['Tom Sr.', 'Tom Jr.', 'Jen'],
     transcriptExcerpt:
       "TS: Q2 cycle starts now. IR1 done, IR2 May 10, IR3 May 22.\nJen: Jake Koenigsberg insurance is the priority deliverable — coordinate with Yvonne.",
@@ -556,6 +576,10 @@ export const MEETINGS = [
     time: '09:00',
     durationMin: 90,
     status: 'Recording',
+    prep: [
+      { name: 'Team file review', date: '2026-05-09', status: 'Done' },
+      { name: "Tom's file review", date: '2026-05-18', status: 'Scheduled' },
+    ],
     attendees: ['Tom Sr.', 'Matt', 'Eugene Chrinian', 'Keith Meltzer'],
     transcriptExcerpt: '',
     summaryLetter: null,
@@ -570,6 +594,10 @@ export const MEETINGS = [
     time: '13:00',
     durationMin: 60,
     status: 'Letter Drafted',
+    prep: [
+      { name: 'Team file review', date: '2026-02-23', status: 'Done' },
+      { name: "Tom's file review", date: '2026-02-26', status: 'Done' },
+    ],
     attendees: ['Tom Sr.', 'Jen', 'Alan Garten', 'Larry Glick'],
     transcriptExcerpt:
       "AG: I want the Phase II package finalized before fall.\nLG: I'll stay close to this — Alan is a long-standing relationship.\nTS: Heritage will deliver the Flow Diagram via MH within 6 weeks.",

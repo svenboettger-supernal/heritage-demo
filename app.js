@@ -1,6 +1,6 @@
 // Heritage demo · App entry, router, state, view renderers.
 import { CLIENTS, STAGES, CUSTOMER_TYPES, MORNING_DIGEST, clientById, stageById } from './data/clients.js';
-import { TASKS, MEETINGS, PREP_PROTOCOL, MONDAY_RUNDOWN, STATUSES, PRIORITIES, DAILY_CAPACITY, tasksForClient, taskById, meetingById } from './data/work.js';
+import { TASKS, MEETINGS, MONDAY_RUNDOWN, STATUSES, PRIORITIES, DAILY_CAPACITY, tasksForClient, taskById, meetingById } from './data/work.js';
 import { TICKETS, KB_ARTICLES, SAVED_VIEWS, PERSONAS, PERFORMANCE, ticketsForClient, ticketById } from './data/support.js';
 import { BOTS, getHistory, appendMessage, resetHistory, matchIntent, suggestedReplies } from './chat.js';
 
@@ -64,8 +64,7 @@ const APPS = {
     sidebar: [
       { id: 'rundown', label: 'Monday rundown', icon: 'rundown', route: 'rundown' },
       { id: 'tasks', label: 'Tasks', icon: 'check', route: 'tasks' },
-      { id: 'meetings', label: 'Meetings', icon: 'calendar', route: 'meetings' },
-      { id: 'prep', label: 'Prep protocol', icon: 'stairs', route: 'prep' },
+      { id: 'meetings', label: 'Meetings & prep', icon: 'calendar', route: 'meetings' },
     ],
   },
   sam: {
@@ -286,6 +285,7 @@ function svg(name) {
     arrow: '<path d="M5 3l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
     back: '<path d="M11 3L6 8l5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>',
     pen: '<path d="M11.5 1.5l3 3-9 9H2.5v-3l9-9z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
+    warning: '<path d="M8 2L1.5 13.5h13L8 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 6.5v3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.5" r="0.9" fill="currentColor"/>',
   };
   return `<svg class="icon" viewBox="0 0 16 16" fill="none" aria-hidden="true">${ICONS[name] || ''}</svg>`;
 }
@@ -1182,51 +1182,89 @@ function renderForemanTaskDetail() {
 /* ── Foreman · Meetings list + detail ────────────────────── */
 
 function renderForemanMeetings() {
-  const tab = state.query.tab || 'past';
+  // HER-07: Meetings + prep protocol merged into one view. HER-11: chronological default, soonest first.
+  const tab = state.query.tab || 'upcoming';
   const today = new Date('2026-05-12');
   const past = MEETINGS.filter((m) => new Date(m.date) < today).sort((a, b) => (a.date < b.date ? 1 : -1));
   const upcoming = MEETINGS.filter((m) => new Date(m.date) >= today).sort((a, b) => (a.date < b.date ? -1 : 1));
   const list = tab === 'past' ? past : upcoming;
+  const clientQ = state.query.client ? '&client=' + state.query.client : '';
+  const flagged = upcoming.filter((m) => prepGaps(m).length > 0).length;
 
   return `
     <div class="page-head">
       <span class="page-kicker">Foreman · Project Manager</span>
       <div class="page-head-row">
-        <h1>Meetings</h1>
+        <h1>Meetings & prep</h1>
         <div class="page-actions">
           <button class="btn btn--secondary btn--sm">Connect calendar</button>
           <button class="btn btn--primary btn--sm">${svg('plus')} Schedule meeting</button>
         </div>
       </div>
-      <p class="page-sub">Foreman sits in on every meeting, drafts the summary, and lands action items in the shared task layer.</p>
+      <p class="page-sub">Every client meeting with its prep stages in Heritage order: team file review, then Tom's file review, then the client meeting. Foreman flags any stage that is not booked.</p>
     </div>
 
     <div class="tabs">
-      <a class="tab" data-active="${tab === 'past'}" href="#/foreman/meetings?tab=past${state.query.client ? '&client=' + state.query.client : ''}">Past <span class="tab-counter">${past.length}</span></a>
-      <a class="tab" data-active="${tab === 'upcoming'}" href="#/foreman/meetings?tab=upcoming${state.query.client ? '&client=' + state.query.client : ''}">Upcoming <span class="tab-counter">${upcoming.length}</span></a>
+      <a class="tab" data-active="${tab !== 'past'}" href="#/foreman/meetings?tab=upcoming${clientQ}">Upcoming <span class="tab-counter">${upcoming.length}</span></a>
+      <a class="tab" data-active="${tab === 'past'}" href="#/foreman/meetings?tab=past${clientQ}">Past <span class="tab-counter">${past.length}</span></a>
     </div>
 
-    <div class="table-wrap">
-      <table class="table">
-        <thead>
-          <tr><th>Meeting</th><th>Client</th><th>Type</th><th>Date</th><th>Attendees</th><th>Status</th></tr>
-        </thead>
-        <tbody>
-          ${list.map((m) => {
-            const c = clientById(m.clientId);
-            return `
-              <tr data-action="open-meeting" data-meeting="${m.id}">
-                <td><div style="font-weight:500">${esc(m.title)}</div><div class="tiny muted col-mono">${esc(m.id)}</div></td>
-                <td>${c ? esc(c.name) : '—'}</td>
-                <td><span class="badge badge--outline">${esc(m.type)}</span></td>
-                <td><div>${shortDate(m.date)}</div><div class="tiny muted">${esc(m.time || '')}${m.durationMin ? ' · ' + m.durationMin + 'min' : ''}</div></td>
-                <td><div class="avatar-stack">${m.attendees.slice(0, 4).map((a) => avatarFor(a, 'sm')).join('')}</div></td>
-                <td>${meetingStatusBadge(m.status)}</td>
-              </tr>
-            `;
-          }).join('')}
-        </tbody>
-      </table>
+    ${tab !== 'past' && flagged > 0 ? `
+      <div class="card mb-md" style="padding:14px 16px">
+        <div class="row" style="gap:14px">
+          <span class="health-pill health-pill--amber">${healthDot('amber')} ${flagged} meeting${flagged === 1 ? '' : 's'} with an unbooked prep stage</span>
+          <span class="health-pill health-pill--green">${healthDot('green')} ${upcoming.length - flagged} fully staged</span>
+        </div>
+      </div>
+    ` : ''}
+
+    ${list.map((m) => meetingPrepBlock(m, today)).join('')}
+  `;
+}
+
+function prepGaps(m) {
+  return (m.prep || []).filter((s) => s.status === 'Not booked' || !s.date);
+}
+
+function meetingPrepBlock(m, today) {
+  const c = clientById(m.clientId);
+  const isPast = new Date(m.date) < today;
+  const gaps = isPast ? [] : prepGaps(m);
+  const stages = [
+    ...(m.prep || []),
+    { name: 'Client meeting', date: m.date, time: m.time, status: isPast ? 'Done' : 'Scheduled' },
+  ];
+  const gapNames = gaps.map((g) => g.name).join(' and ');
+
+  return `
+    <div class="meeting-block${gaps.length ? ' meeting-block--flagged' : ''}" data-action="open-meeting" data-meeting="${m.id}">
+      <div class="meeting-block-head">
+        <div>
+          <div style="font-weight:500">${esc(m.title)}</div>
+          <div class="tiny muted">${c ? esc(c.name) + ' · ' : ''}<span class="col-mono">${esc(m.id)}</span></div>
+        </div>
+        <div class="row" style="gap:8px;justify-content:flex-end;flex-wrap:wrap">
+          <span class="badge badge--outline">${esc(m.type)}</span>
+          ${meetingStatusBadge(m.status)}
+          <span class="tiny muted">${shortDate(m.date)}${m.time ? ' · ' + esc(m.time) : ''}${m.durationMin ? ' · ' + m.durationMin + 'min' : ''}</span>
+          <div class="avatar-stack">${m.attendees.slice(0, 4).map((a) => avatarFor(a, 'sm')).join('')}</div>
+        </div>
+      </div>
+      <div class="meeting-stages">
+        ${stages.map((s) => `
+          <div class="cadence-cell" data-status="${esc(s.status)}">
+            <span class="cadence-cell-name">${esc(s.name)}</span>
+            <span class="cadence-cell-date">${s.date ? shortDate(s.date) + (s.time ? ' · ' + esc(s.time) : '') : 'No date'}</span>
+            <span class="cadence-cell-status">${esc(s.status)}</span>
+          </div>
+        `).join('')}
+      </div>
+      ${gaps.length ? `
+        <div class="meeting-flag">
+          ${svg('warning')}
+          <span>${esc(gapNames)} ${gaps.length > 1 ? 'are' : 'is'} not booked but the client meeting is set for ${shortDate(m.date)}. Book the review now so the file does not reach Tom thirty minutes before the client.</span>
+        </div>
+      ` : ''}
     </div>
   `;
 }
@@ -1339,47 +1377,6 @@ function renderForemanMeetingDetail() {
         ` : ''}
       </aside>
     </div>
-  `;
-}
-
-/* ── Foreman · Prep protocol ─────────────────────────────── */
-
-function renderForemanPrep() {
-  return `
-    <div class="page-head">
-      <span class="page-kicker">Foreman · Project Manager</span>
-      <h1>Prep protocol</h1>
-      <p class="page-sub">Pre-Internal · IR1 · IR2 · Partner Review — per engagement. Foreman flags slippage before the next meeting.</p>
-    </div>
-
-    <div class="card mb-md" style="padding:14px 16px">
-      <div class="row" style="gap:14px">
-        <span class="health-pill health-pill--green">${healthDot('green')} 5 On Track</span>
-        <span class="health-pill health-pill--amber">${healthDot('amber')} 2 At Risk</span>
-        <span class="health-pill health-pill--red">${healthDot('red')} 1 Slipped</span>
-      </div>
-    </div>
-
-    ${PREP_PROTOCOL.map((p) => {
-      const c = clientById(p.clientId);
-      return `
-        <div class="cadence-strip">
-          <div class="cadence-engagement">
-            <a href="#/hank/clients/${p.clientId}?client=${p.clientId}" data-action="open-client" data-client="${p.clientId}" style="color:inherit;text-decoration:none">
-              <strong>${esc(c.name)}</strong>
-            </a>
-            <span>${esc(p.engagement)}</span>
-          </div>
-          ${p.milestones.map((m) => `
-            <div class="cadence-cell" data-status="${esc(m.status)}">
-              <span class="cadence-cell-name">${esc(m.name)}</span>
-              <span class="cadence-cell-date">${esc(m.date || '—')}</span>
-              <span class="cadence-cell-status">${esc(m.status)}</span>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }).join('')}
   `;
 }
 
@@ -1693,7 +1690,7 @@ function dispatchRoute() {
     if (segs[0] === 'tasks' && hasId) return renderForemanTaskDetail();
     if (segs[0] === 'meetings' && !hasId) return renderForemanMeetings();
     if (segs[0] === 'meetings' && hasId) return renderForemanMeetingDetail();
-    if (segs[0] === 'prep') return renderForemanPrep();
+    if (segs[0] === 'prep') return renderForemanMeetings(); // merged into Meetings & prep (HER-07); old links keep working
   }
   if (state.app === 'sam') {
     if (segs[0] === 'tickets' && !hasId) return renderSamTickets();
@@ -1769,7 +1766,7 @@ const CMD_PROMPTS = [
 • Dana — IR2 At Risk (Goodman Marks valuations pending).
 • Mills — IR2 At Risk (Vic valuation pending).`,
     citations: [
-      { label: 'Prep protocol overview', href: '#/foreman/prep' },
+      { label: 'Meetings & prep overview', href: '#/foreman/meetings' },
     ],
   },
   {

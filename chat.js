@@ -288,7 +288,7 @@ function prepCadence() {
   });
   return {
     reply: `Prep cadence across engagements:\n\n${lines.join('\n')}`,
-    citations: [{ label: 'Prep protocol', href: '#/foreman/prep' }],
+    citations: [{ label: 'Meetings & prep', href: '#/foreman/meetings' }],
   };
 }
 
