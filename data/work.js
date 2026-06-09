@@ -449,6 +449,64 @@ export const TASKS = [
     activity: [{ date: '2026-05-11', event: 'Task created from recurring template' }],
     attachments: [],
   },
+  {
+    id: 'T-2063',
+    title: 'Partner dinner · confirm venue and June 4 invite list',
+    owner: 'Jen',
+    due: '2026-05-20',
+    estHours: 2,
+    status: 'In Progress',
+    priority: 'Normal',
+    labels: ['partner-dinner', 'internal'],
+    clientId: null,
+    engagement: 'Internal · referral partner dinner',
+    description:
+      'June 4 dinner for referral partners: Giamo, Glick, DelPrete & Giunta, Tiger 21 contacts. Confirm the venue and lock the invite list with Tom Sr.',
+    subtasks: [
+      { title: 'Hold venue for June 4', done: true },
+      { title: 'Invite list approved by Tom Sr.', done: false },
+    ],
+    dependencies: [],
+    comments: [],
+    activity: [{ date: '2026-05-11', event: 'Task created from partner development plan' }],
+    attachments: [],
+  },
+  {
+    id: 'T-2064',
+    title: 'Partner dinner · draft program and Tom Sr. talking points',
+    owner: 'Tom Jr.',
+    due: '2026-05-21',
+    estHours: 1.5,
+    status: 'To Do',
+    priority: 'Normal',
+    labels: ['partner-dinner', 'internal'],
+    clientId: null,
+    engagement: 'Internal · referral partner dinner',
+    description: 'One-page program plus talking points for Tom Sr. Theme: how Heritage works with referral partners through the AI Platform.',
+    subtasks: [],
+    dependencies: ['T-2063'],
+    comments: [],
+    activity: [{ date: '2026-05-11', event: 'Task created from partner development plan' }],
+    attachments: [],
+  },
+  {
+    id: 'T-2065',
+    title: 'Partner dinner · send invitations in Heritage voice',
+    owner: 'Matt',
+    due: '2026-05-26',
+    estHours: 1,
+    status: 'To Do',
+    priority: 'Normal',
+    labels: ['partner-dinner', 'internal', 'voice'],
+    clientId: null,
+    engagement: 'Internal · referral partner dinner',
+    description: 'Send invitations once the list is approved. Run drafts through the Heritage voice guide before they go out.',
+    subtasks: [],
+    dependencies: ['T-2064'],
+    comments: [],
+    activity: [{ date: '2026-05-11', event: 'Task created from partner development plan' }],
+    attachments: [],
+  },
 ];
 
 export function tasksForClient(clientId) {
@@ -457,6 +515,39 @@ export function tasksForClient(clientId) {
 
 export function taskById(id) {
   return TASKS.find((t) => t.id === id) || null;
+}
+
+// HER-08 · Projects level above tasks. A project is one client engagement or
+// one internal effort. Projects are derived from the tasks, never hardcoded:
+// every task carries an engagement string, so the project id is its slug.
+export function projectIdFor(task) {
+  return String(task.engagement || 'Internal · operations')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export function deriveProjects() {
+  const map = new Map();
+  for (const t of TASKS) {
+    const id = projectIdFor(t);
+    if (!map.has(id)) {
+      map.set(id, {
+        id,
+        name: t.engagement,
+        type: t.clientId ? 'engagement' : 'internal',
+        clientId: t.clientId || null,
+        tasks: [],
+      });
+    }
+    map.get(id).tasks.push(t);
+  }
+  // Client engagements first, internal efforts after; seed order otherwise.
+  return Array.from(map.values()).sort((a, b) => (a.type === b.type ? 0 : a.type === 'engagement' ? -1 : 1));
+}
+
+export function projectById(id) {
+  return deriveProjects().find((p) => p.id === id) || null;
 }
 
 export const MEETINGS = [

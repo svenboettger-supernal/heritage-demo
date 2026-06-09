@@ -1,6 +1,6 @@
 // Heritage demo · App entry, router, state, view renderers.
 import { CLIENTS, STAGES, CUSTOMER_TYPES, MORNING_DIGEST, clientById, stageById } from './data/clients.js';
-import { TASKS, MEETINGS, MONDAY_RUNDOWN, STATUSES, PRIORITIES, DAILY_CAPACITY, tasksForClient, taskById, meetingById } from './data/work.js';
+import { TASKS, MEETINGS, MONDAY_RUNDOWN, STATUSES, PRIORITIES, DAILY_CAPACITY, tasksForClient, taskById, meetingById, deriveProjects, projectById } from './data/work.js';
 import { TICKETS, KB_ARTICLES, SAVED_VIEWS, PERSONAS, PERFORMANCE, ticketsForClient, ticketById } from './data/support.js';
 import { BOTS, getHistory, appendMessage, resetHistory, matchIntent, suggestedReplies } from './chat.js';
 
@@ -825,11 +825,180 @@ function renderForemanRundown() {
   `;
 }
 
-/* ── Foreman · Tasks (List / Board / Calendar) ───────────── */
+/* ── Foreman · Tasks (Projects / My Tasks / All Tasks) ───── */
+
+// HER-08 · Demo signed-in persona. Jen is the operations lead in the seed
+// data (the "Jess" role from the call) — My Tasks filters to her.
+const SIGNED_IN_OWNER = 'Jen';
 
 function renderForemanTasks() {
+  if (state.query.project) return renderForemanProject();
+  // Old deep links (?client=, ?view=capacity, ?owner=) land on the flat All Tasks tab.
+  const hasFlatQuery = state.query.client || state.query.view || state.query.owner || state.query.status || state.query.priority;
+  const tab = state.query.tab || (hasFlatQuery ? 'all' : 'projects');
+  if (tab === 'projects') return renderForemanProjects();
+  return renderForemanTasksFlat(tab);
+}
+
+function foremanTaskTabs(tab) {
+  const clientQ = state.query.client ? '&client=' + state.query.client : '';
+  const mine = TASKS.filter((t) => t.owner === SIGNED_IN_OWNER).length;
+  return `
+    <div class="tabs">
+      <a class="tab" data-active="${tab === 'projects'}" href="#/foreman/tasks?tab=projects${clientQ}">Projects <span class="tab-counter">${deriveProjects().length}</span></a>
+      <a class="tab" data-active="${tab === 'mine'}" href="#/foreman/tasks?tab=mine${clientQ}">My Tasks <span class="tab-counter">${mine}</span></a>
+      <a class="tab" data-active="${tab === 'all'}" href="#/foreman/tasks?tab=all${clientQ}">All Tasks <span class="tab-counter">${TASKS.length}</span></a>
+    </div>
+  `;
+}
+
+// Status, risk, and timeline roll up from the project's tasks.
+function projectStats(p) {
+  const today = new Date('2026-05-12');
+  const open = p.tasks.filter((t) => t.status !== 'Done');
+  const overdue = open.filter((t) => t.due && new Date(t.due) < today);
+  const blocked = open.filter((t) => t.status === 'Blocked');
+  const overOwners = Array.from(new Set(open.filter((t) => isOverbooked(t)).map((t) => t.owner)));
+  const dues = p.tasks.filter((t) => t.due).map((t) => t.due).sort();
+  const status = open.length === 0 ? 'Done' : blocked.length ? 'Blocked' : open.some((t) => t.status === 'In Progress') ? 'In Progress' : 'To Do';
+  const reasons = [];
+  if (overdue.length) reasons.push(`${overdue.length} overdue`);
+  if (overOwners.length) reasons.push(`${overOwners.join(', ')} over capacity`);
+  return {
+    open: open.length,
+    done: p.tasks.length - open.length,
+    status,
+    risk: reasons.length ? 'Elevated' : 'Normal',
+    riskReason: reasons.join(' · '),
+    start: dues[0] || null,
+    end: dues[dues.length - 1] || null,
+  };
+}
+
+function riskBadge(s) {
+  if (s.risk === 'Elevated') return `<span class="badge badge--error" title="${esc(s.riskReason)}">Elevated</span>`;
+  return `<span class="badge badge--success">Normal</span>`;
+}
+
+function renderForemanProjects() {
+  let projects = deriveProjects();
+  const followingClient = state.query.client;
+  if (followingClient) projects = projects.filter((p) => p.clientId === followingClient);
+  const engagements = projects.filter((p) => p.type === 'engagement').length;
+  const internal = projects.length - engagements;
+  const elevated = projects.filter((p) => projectStats(p).risk === 'Elevated').length;
+
+  return `
+    <div class="page-head">
+      <span class="page-kicker">Foreman · Project Manager</span>
+      <div class="page-head-row">
+        <h1>Tasks</h1>
+        <div class="page-actions">
+          <button class="btn btn--primary btn--sm" data-action="new-task">${svg('plus')} New task</button>
+        </div>
+      </div>
+      <p class="page-sub">${engagements} client engagement${engagements === 1 ? '' : 's'} and ${internal} internal effort${internal === 1 ? '' : 's'} · ${elevated ? `${elevated} at elevated risk` : 'no elevated risk'}. Status, risk, and timeline roll up from each project's tasks.${followingClient ? ` Filtered by <a href="#" data-action="unfollow">${esc(clientById(followingClient)?.name || '')}</a>.` : ''}</p>
+    </div>
+
+    ${foremanTaskTabs('projects')}
+
+    ${projects.length === 0 ? `<div class="card empty"><h3>No matching projects</h3><p class="muted">Stop following the client to see every project.</p></div>` : `
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Project</th>
+            <th>Type</th>
+            <th>Tasks</th>
+            <th>Status</th>
+            <th>Risk</th>
+            <th>Timeline</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${projects.map((p) => {
+            const s = projectStats(p);
+            return `
+              <tr data-action="open-project" data-project="${p.id}">
+                <td><div style="font-weight:500">${esc(p.name)}</div>${s.riskReason ? `<div class="tiny muted">${esc(s.riskReason)}</div>` : ''}</td>
+                <td><span class="badge badge--outline">${p.type === 'engagement' ? 'Engagement' : 'Internal'}</span></td>
+                <td><span class="col-mono tiny">${p.tasks.length}</span> <span class="tiny muted">· ${s.open} open</span></td>
+                <td>${statusBadge(s.status)}</td>
+                <td>${riskBadge(s)}</td>
+                <td class="muted tiny">${s.start ? `${shortDate(s.start)} to ${shortDate(s.end)}` : 'No dates'}</td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>`}
+  `;
+}
+
+function renderForemanProject() {
+  const p = projectById(state.query.project);
+  if (!p) return renderNotFound('Project');
+  const s = projectStats(p);
   const view = state.query.view || 'list';
   const owner = state.query.owner || 'all';
+  const status = state.query.status || 'all';
+  const priority = state.query.priority || 'all';
+  let tasks = p.tasks.slice();
+  if (owner !== 'all') tasks = tasks.filter((t) => t.owner === owner);
+  if (status !== 'all') tasks = tasks.filter((t) => t.status === status);
+  if (priority !== 'all') tasks = tasks.filter((t) => t.priority === priority);
+  const owners = Array.from(new Set(p.tasks.map((t) => t.owner))).sort();
+
+  return `
+    <div class="page-head">
+      <a href="#/foreman/tasks?tab=projects" class="btn btn--ghost btn--sm" style="align-self:flex-start;margin-bottom:8px">${svg('back')} Projects</a>
+      <span class="page-kicker">Project · ${p.type === 'engagement' ? 'Client engagement' : 'Internal effort'}</span>
+      <div class="page-head-row">
+        <h1>${esc(p.name)}</h1>
+        <div class="page-actions">
+          <div class="segmented">
+            ${['list', 'board', 'calendar', 'capacity'].map((v) => `<button class="segmented-item" data-active="${view === v}" data-action="set-view" data-view="${v}">${esc(v[0].toUpperCase() + v.slice(1))}</button>`).join('')}
+          </div>
+          <button class="btn btn--primary btn--sm" data-action="new-task">${svg('plus')} New task</button>
+        </div>
+      </div>
+      <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
+        ${statusBadge(s.status)}
+        ${riskBadge(s)}
+        ${p.clientId ? `<span class="badge">${esc(clientById(p.clientId)?.name || '')}</span>` : ''}
+        <span class="tiny muted">${p.tasks.length} task${p.tasks.length === 1 ? '' : 's'} · ${s.open} open · ${s.start ? `${shortDate(s.start)} to ${shortDate(s.end)}` : 'no dates'}${s.riskReason ? ' · ' + esc(s.riskReason) : ''}</span>
+      </div>
+    </div>
+
+    ${taskFilterBar({ status, priority, owner, owners })}
+
+    ${view === 'list' ? renderForemanTasksList(tasks) : view === 'board' ? renderForemanTasksBoard(tasks) : view === 'capacity' ? renderForemanTasksCapacity(tasks) : renderForemanTasksCalendar(tasks)}
+  `;
+}
+
+function taskFilterBar({ status, priority, owner, owners }) {
+  return `
+    <div class="filter-bar">
+      <span class="caption">Status</span>
+      <button class="filter-chip" data-action="filter" data-filter="status" data-value="all" data-active="${status === 'all'}">All</button>
+      ${STATUSES.map((s) => `<button class="filter-chip" data-action="filter" data-filter="status" data-value="${s}" data-active="${status === s}">${esc(s)}</button>`).join('')}
+      <span style="width:12px"></span>
+      <span class="caption">Priority</span>
+      <button class="filter-chip" data-action="filter" data-filter="priority" data-value="all" data-active="${priority === 'all'}">All</button>
+      ${PRIORITIES.map((p) => `<button class="filter-chip" data-action="filter" data-filter="priority" data-value="${p}" data-active="${priority === p}">${esc(p)}</button>`).join('')}
+      ${owners ? `
+      <span style="width:12px"></span>
+      <span class="caption">Owner</span>
+      <button class="filter-chip" data-action="filter" data-filter="owner" data-value="all" data-active="${owner === 'all'}">All</button>
+      ${owners.map((o) => `<button class="filter-chip" data-action="filter" data-filter="owner" data-value="${o}" data-active="${owner === o}">${esc(o)}</button>`).join('')}` : ''}
+    </div>
+  `;
+}
+
+function renderForemanTasksFlat(tab) {
+  const mine = tab === 'mine';
+  const view = state.query.view || 'list';
+  const owner = mine ? SIGNED_IN_OWNER : (state.query.owner || 'all');
   const status = state.query.status || 'all';
   const priority = state.query.priority || 'all';
   const followingClient = state.query.client;
@@ -853,22 +1022,12 @@ function renderForemanTasks() {
           <button class="btn btn--primary btn--sm" data-action="new-task">${svg('plus')} New task</button>
         </div>
       </div>
-      <p class="page-sub">${tasks.length} task${tasks.length === 1 ? '' : 's'} · Heritage no-dates standard enforced. ${followingClient ? `Filtered by <a href="#" data-action="unfollow">${esc(clientById(followingClient)?.name || '')}</a>.` : 'Across every engagement.'}</p>
+      <p class="page-sub">${tasks.length} task${tasks.length === 1 ? '' : 's'} · ${mine ? `Signed in as ${SIGNED_IN_OWNER}, operations lead.` : 'Heritage no-dates standard enforced.'} ${followingClient ? `Filtered by <a href="#" data-action="unfollow">${esc(clientById(followingClient)?.name || '')}</a>.` : mine ? '' : 'Across every engagement.'}</p>
     </div>
 
-    <div class="filter-bar">
-      <span class="caption">Status</span>
-      <button class="filter-chip" data-action="filter" data-filter="status" data-value="all" data-active="${status === 'all'}">All</button>
-      ${STATUSES.map((s) => `<button class="filter-chip" data-action="filter" data-filter="status" data-value="${s}" data-active="${status === s}">${esc(s)}</button>`).join('')}
-      <span style="width:12px"></span>
-      <span class="caption">Priority</span>
-      <button class="filter-chip" data-action="filter" data-filter="priority" data-value="all" data-active="${priority === 'all'}">All</button>
-      ${PRIORITIES.map((p) => `<button class="filter-chip" data-action="filter" data-filter="priority" data-value="${p}" data-active="${priority === p}">${esc(p)}</button>`).join('')}
-      <span style="width:12px"></span>
-      <span class="caption">Owner</span>
-      <button class="filter-chip" data-action="filter" data-filter="owner" data-value="all" data-active="${owner === 'all'}">All</button>
-      ${owners.map((o) => `<button class="filter-chip" data-action="filter" data-filter="owner" data-value="${o}" data-active="${owner === o}">${esc(o)}</button>`).join('')}
-    </div>
+    ${foremanTaskTabs(tab)}
+
+    ${taskFilterBar({ status, priority, owner, owners: mine ? null : owners })}
 
     ${view === 'list' ? renderForemanTasksList(tasks) : view === 'board' ? renderForemanTasksBoard(tasks) : view === 'capacity' ? renderForemanTasksCapacity(tasks) : renderForemanTasksCalendar(tasks)}
   `;
@@ -1053,10 +1212,18 @@ function renderForemanTaskDetail() {
   const t = taskById(id);
   if (!t) return renderNotFound('Task');
   const client = t.clientId ? clientById(t.clientId) : null;
+  // Keep the project, tab, or client context when navigating back / across dependencies (HER-08).
+  const backParams = [];
+  if (state.query.project) backParams.push('project=' + encodeURIComponent(state.query.project));
+  else {
+    if (state.query.tab) backParams.push('tab=' + encodeURIComponent(state.query.tab));
+    if (state.query.client) backParams.push('client=' + encodeURIComponent(state.query.client));
+  }
+  const keepQ = backParams.length ? '?' + backParams.join('&') : '';
 
   return `
     <div class="page-head">
-      <a href="#/foreman/tasks${state.query.client ? '?client=' + state.query.client : ''}" class="btn btn--ghost btn--sm" style="align-self:flex-start;margin-bottom:8px">${svg('back')} All tasks</a>
+      <a href="#/foreman/tasks${keepQ}" class="btn btn--ghost btn--sm" style="align-self:flex-start;margin-bottom:8px">${svg('back')} ${state.query.project ? 'Back to project' : state.query.tab === 'mine' ? 'My tasks' : 'All tasks'}</a>
       <div class="page-head-row">
         <div>
           <span class="page-kicker">Task · ${esc(t.id)}</span>
@@ -1098,7 +1265,7 @@ function renderForemanTaskDetail() {
           <div class="card">
             <div class="card-title">Dependencies</div>
             <div class="flex-wrap" style="margin-top:8px">
-              ${t.dependencies.map((d) => `<a class="dep-pill" href="#/foreman/tasks/${d}${state.query.client ? '?client=' + state.query.client : ''}">${esc(d)}</a>`).join('')}
+              ${t.dependencies.map((d) => `<a class="dep-pill" href="#/foreman/tasks/${d}${keepQ}">${esc(d)}</a>`).join('')}
             </div>
           </div>
         ` : ''}
@@ -2476,6 +2643,11 @@ function bindEvents() {
       e.preventDefault();
       const tid = a.dataset.task;
       navigate({ app: 'foreman', route: 'tasks/' + tid });
+      return;
+    }
+    if (action === 'open-project') {
+      e.preventDefault();
+      navigate({ app: 'foreman', route: 'tasks', query: { project: a.dataset.project }, removeQuery: ['tab', 'view', 'status', 'priority', 'owner'] });
       return;
     }
     if (action === 'open-meeting') {
